@@ -1,0 +1,364 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Notification Center | HireFlow AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Geist:wght@400;450;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-pane {
+            background: rgba(18, 22, 31, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .ai-glow-border {
+            position: relative;
+            border: 1px solid transparent;
+            background: linear-gradient(rgba(18, 22, 31, 0.8), rgba(18, 22, 31, 0.8)) padding-box,
+                        linear-gradient(45deg, #b5c4ff, #4816cb, #b7eaff) border-box;
+            background-size: 200% 200%;
+            animation: borderGradient 6s ease infinite;
+        }
+        @keyframes borderGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        body {
+            background-color: #0b0d12;
+            color: #e2e2e9;
+            overflow-x: hidden;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary": "#b5c4ff",
+                    "on-secondary-fixed-variant": "#4816cb",
+                    "on-primary-fixed-variant": "#003cad",
+                    "surface-tint": "#b5c4ff",
+                    "primary-container": "#648aff",
+                    "inverse-primary": "#1a53d6",
+                    "tertiary-fixed": "#b7eaff",
+                    "surface-container": "#1e1f25",
+                    "surface-container-lowest": "#0c0e13",
+                    "on-surface-variant": "#c3c5d7",
+                    "surface-container-high": "#282a2f",
+                    "secondary-fixed": "#e6deff",
+                    "on-secondary-fixed": "#1c0062",
+                    "on-error-container": "#ffdad6",
+                    "secondary-container": "#4816cb",
+                    "tertiary-fixed-dim": "#4cd6ff",
+                    "on-tertiary": "#003543",
+                    "outline-variant": "#434654",
+                    "surface-bright": "#37393f",
+                    "on-surface": "#e2e2e9",
+                    "surface-container-highest": "#33353a",
+                    "primary-fixed": "#dce1ff",
+                    "on-tertiary-fixed-variant": "#004e60",
+                    "background": "#111318",
+                    "error-container": "#93000a",
+                    "on-tertiary-container": "#002e3a",
+                    "secondary": "#cabeff",
+                    "on-tertiary-fixed": "#001f28",
+                    "error": "#ffb4ab",
+                    "on-secondary-container": "#b9aaff",
+                    "on-secondary": "#31009a",
+                    "on-primary-fixed": "#00164d",
+                    "on-error": "#690005",
+                    "on-primary": "#00297b",
+                    "surface": "#111318",
+                    "outline": "#8d90a0",
+                    "inverse-on-surface": "#2e3036",
+                    "surface-dim": "#111318",
+                    "surface-container-low": "#1a1b21",
+                    "on-background": "#e2e2e9",
+                    "tertiary-container": "#009dc1",
+                    "tertiary": "#4cd6ff",
+                    "inverse-surface": "#e2e2e9",
+                    "secondary-fixed-dim": "#cabeff",
+                    "on-primary-container": "#00236d",
+                    "primary-fixed-dim": "#b5c4ff",
+                    "surface-variant": "#33353a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "stack-lg": "32px",
+                    "margin-desktop": "48px",
+                    "gutter": "24px",
+                    "container-max": "1440px",
+                    "stack-xl": "64px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "label-caps": ["Geist"],
+                    "display-lg": ["Inter"],
+                    "body-base": ["Inter"],
+                    "mono-technical": ["Geist"],
+                    "headline-md": ["Inter"],
+                    "display-lg-mobile": ["Inter"]
+            },
+            "fontSize": {
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-base": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "mono-technical": ["13px", {"lineHeight": "20px", "fontWeight": "450"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="font-body-base text-body-base">
+<!-- SideNavBar -->
+<aside class="h-screen w-72 left-0 top-0 fixed border-r border-white/10 bg-surface-container/80 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col h-full py-8 z-50">
+<div class="px-8 mb-10">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">HireFlow AI</h1>
+<p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mt-1">Elite Recruitment</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-body-base text-body-base">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+<span class="font-body-base text-body-base">Talent Pipeline</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-body-base text-body-base">AI Sourcing</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="event_available">event_available</span>
+<span class="font-body-base text-body-base">Interviews</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-body-base text-body-base">Analytics</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-base text-body-base">Settings</span>
+</a>
+</nav>
+<div class="px-6 mt-auto space-y-4">
+<button class="w-full bg-primary text-on-primary py-3 rounded-xl font-bold transition-transform active:scale-95 duration-200 shadow-[0_0_15px_rgba(181,196,255,0.3)]">
+                New Search
+            </button>
+<div class="pt-6 space-y-2 border-t border-white/5">
+<a class="flex items-center gap-4 px-2 py-2 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+<span class="font-body-base text-body-base">Support</span>
+</a>
+<a class="flex items-center gap-4 px-2 py-2 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+<span class="font-body-base text-body-base">Theme</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-288px)] h-16 border-b border-white/5 bg-surface-dim/50 backdrop-blur-md flex justify-between items-center px-8 z-40">
+<div class="flex items-center gap-4 w-96">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-10 pr-4 text-body-base font-body-base focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" placeholder="Global AI search..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative text-primary font-bold border-b-2 border-primary pb-1 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="notifications" style="font-variation-settings: 'FILL' 1;">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-white/10">
+<div class="text-right">
+<p class="text-sm font-bold text-on-surface">Alex Recruiter</p>
+<p class="text-[10px] text-primary font-mono-technical">ELITE PLAN</p>
+</div>
+<div class="w-10 h-10 rounded-full glass-pane overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a recruitment executive with sharp features, wearing a sleek black turtleneck, against a blurred high-tech office background with ambient blue neon lighting. The image quality is high-end, editorial, and minimalist, matching a premium obsidian and glass UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkZWegnslDo9Z_N1yuWoB4hrQwS6zXrl2oJZ34WQeCclG9YbeMX3PWIVWBLY4LY3tEDPFXH-o0ynzqZVVEPi1OeaAld_z1bfQOVwm8momNAg7wMnencd1z2vFCfQQKUs4utW5ZnmnnZigT1P9oSlsFm6NHDc1QlWsI7aI6w7Cf-S8xUXyHRbx-80IpLrQpTDYiyGHECkMC9E1ukXhDzCarWffoZmF_hlUMak5SYdVno6UgGDoevpTOAzjjgUcyFUx5LsRnpTNuxm2B">
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-72 pt-24 pb-16 px-margin-desktop min-h-screen">
+<div class="max-w-container-max mx-auto">
+<!-- Notification Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-stack-lg mb-stack-xl">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface mb-2">Notifications</h2>
+<p class="text-on-surface-variant font-body-base">Manage your AI-powered recruitment insights and system alerts.</p>
+</div>
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-white/10 text-on-surface font-semibold hover:bg-white/5 transition-all active:scale-95">
+<span class="material-symbols-outlined text-sm">checklist</span>
+                    Mark all as read
+                </button>
+</div>
+<!-- Filter Tabs -->
+<div class="flex items-center gap-8 mb-stack-lg border-b border-white/5">
+<button class="pb-4 text-primary font-bold border-b-2 border-primary">All</button>
+<button class="pb-4 text-on-surface-variant hover:text-on-surface transition-colors">Unread</button>
+<button class="pb-4 text-on-surface-variant hover:text-on-surface transition-colors">Mentions</button>
+<button class="pb-4 text-on-surface-variant hover:text-on-surface transition-colors">System</button>
+</div>
+<!-- Notifications List -->
+<div class="grid grid-cols-1 gap-gutter">
+<!-- Card: AI Recommendation Found (Active AI Insight Style) -->
+<div class="ai-glow-border rounded-xl p-6 flex flex-col md:flex-row gap-6 group">
+<div class="flex-shrink-0">
+<div class="w-12 h-12 rounded-xl bg-primary-container/20 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(181,196,255,0.2)]">
+<span class="material-symbols-outlined" data-icon="psychology" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+</div>
+<div class="flex-grow space-y-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-body-base font-bold text-on-surface">AI Recommendation Found</h3>
+<span class="text-mono-technical text-on-surface-variant text-[11px]">2m ago</span>
+</div>
+<p class="text-on-surface-variant text-body-base leading-relaxed">Our AI agent discovered a 98% match for the Senior Product Designer role. The candidate has previous experience at Stripe and Airbnb.</p>
+<div class="flex items-center gap-4 pt-4">
+<button class="px-4 py-1.5 rounded-lg bg-primary text-on-primary text-sm font-bold transition-transform active:scale-95">View Candidate</button>
+<button class="px-4 py-1.5 rounded-lg border border-white/10 text-on-surface text-sm font-bold hover:bg-white/5 transition-all">Dismiss</button>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center">
+<div class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(181,196,255,0.5)]"></div>
+</div>
+</div>
+<!-- Card: New Candidate Applied -->
+<div class="glass-pane rounded-xl p-6 flex flex-col md:flex-row gap-6 group hover:bg-white/[0.03] transition-all">
+<div class="flex-shrink-0">
+<div class="w-12 h-12 rounded-xl bg-secondary-container/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="person_add">person_add</span>
+</div>
+</div>
+<div class="flex-grow space-y-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-body-base font-bold text-on-surface">New Candidate Applied</h3>
+<span class="text-mono-technical text-on-surface-variant text-[11px]">45m ago</span>
+</div>
+<p class="text-on-surface-variant text-body-base leading-relaxed">Jordan Smith applied for the Full Stack Engineer (Remote) position. Portfolio link verified by AI screening.</p>
+<div class="flex items-center gap-4 pt-4">
+<button class="px-4 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-on-surface text-sm font-bold transition-all">Review CV</button>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center">
+<div class="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(181,196,255,0.5)]"></div>
+</div>
+</div>
+<!-- Card: Interview Scheduled -->
+<div class="glass-pane rounded-xl p-6 flex flex-col md:flex-row gap-6 group opacity-70 hover:opacity-100 transition-all">
+<div class="flex-shrink-0">
+<div class="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="calendar_month">calendar_month</span>
+</div>
+</div>
+<div class="flex-grow space-y-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-body-base font-bold text-on-surface">Interview Scheduled</h3>
+<span class="text-mono-technical text-on-surface-variant text-[11px]">3h ago</span>
+</div>
+<p class="text-on-surface-variant text-body-base leading-relaxed">Technical interview confirmed with Sarah Chen for tomorrow at 10:00 AM PST. Calendar invites sent.</p>
+<div class="flex items-center gap-4 pt-4">
+<button class="px-4 py-1.5 rounded-lg border border-white/10 text-on-surface text-sm font-bold hover:bg-white/5 transition-all">View Details</button>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center">
+<div class="w-2.5 h-2.5 rounded-full border border-white/20"></div>
+</div>
+</div>
+<!-- Card: Offer Accepted -->
+<div class="glass-pane rounded-xl p-6 flex flex-col md:flex-row gap-6 group hover:bg-white/[0.03] transition-all relative overflow-hidden">
+<div class="absolute inset-0 shimmer opacity-10 pointer-events-none"></div>
+<div class="flex-shrink-0">
+<div class="w-12 h-12 rounded-xl bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<div class="flex-grow space-y-1">
+<div class="flex justify-between items-start">
+<h3 class="font-headline-md text-body-base font-bold text-on-surface">Offer Accepted</h3>
+<span class="text-mono-technical text-on-surface-variant text-[11px]">Yesterday</span>
+</div>
+<p class="text-on-surface-variant text-body-base leading-relaxed">Exciting news! Marcus Wright has accepted the offer for Head of Engineering. Onboarding sequence initiated.</p>
+<div class="flex items-center gap-4 pt-4">
+<button class="px-4 py-1.5 rounded-lg bg-tertiary text-on-tertiary text-sm font-bold transition-transform active:scale-95">Start Onboarding</button>
+</div>
+</div>
+<div class="flex flex-col items-end justify-center">
+<div class="w-2.5 h-2.5 rounded-full border border-white/20"></div>
+</div>
+</div>
+<!-- Bottom Floating AI Summary Widget -->
+<div class="mt-stack-xl glass-pane rounded-2xl p-8 border-l-4 border-primary relative overflow-hidden">
+<div class="flex flex-col md:flex-row items-center gap-8">
+<div class="w-24 h-24 flex-shrink-0 rounded-full glass-pane p-1 relative">
+<div class="absolute inset-0 rounded-full ai-glow-border opacity-50"></div>
+<img class="w-full h-full rounded-full object-cover" data-alt="A highly detailed 3D render of a futuristic holographic orb pulsing with soft blue and purple light. The orb is suspended in a dark, minimalist digital void with floating crystalline data particles. The lighting is ethereal and high-contrast, representing an advanced AI entity that is both powerful and calm." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhJthN43dKYStutM-7gFfkayhYsrOPZsDxBZHIaVzFKmRbS_UWbRwqrLyw1xDZmMPRkVw53KOO7Vhjude2pJHqlntwdzFz9jf22gUcM2edNAdrAKFLSAloUtd7xAtGYA0YCS6E9ZIi0Y6Z1BLyVSgTl_jqz1rpu9aRF0q7duZPPRjfn_anN8fkPDK4OjWHhlnzpeHZTKbZ7vScvcXY1H9d5U9a5zkG2LLsnUqakHCOJn1K034I2VapsLMoJGnMWac_rQQZBmNkH5vd">
+</div>
+<div class="flex-grow text-center md:text-left">
+<h4 class="font-headline-md text-on-surface mb-2">AI Notification Summary</h4>
+<p class="text-on-surface-variant max-w-2xl">You have 12 new updates today. Based on your activity patterns, the application for <strong>Senior Product Designer</strong> is your highest priority. AI recommends reviewing this candidate within the next hour.</p>
+</div>
+<div class="flex-shrink-0">
+<button class="px-8 py-3 bg-white/5 hover:bg-white/10 rounded-xl font-bold border border-white/10 transition-all">Optimize My Day</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                button.style.transform = 'translateY(-1px)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Simulating some dynamic behavior
+        const notificationCards = document.querySelectorAll('.glass-pane, .ai-glow-border');
+        notificationCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    </script>
+</body></html>

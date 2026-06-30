@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>HireFlow AI | Elite Recruitment Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Geist:wght@450;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-fixed": "#dce1ff",
+                    "inverse-primary": "#1a53d6",
+                    "primary-fixed-dim": "#b5c4ff",
+                    "on-tertiary-fixed-variant": "#004e60",
+                    "surface-container-lowest": "#0c0e13",
+                    "on-secondary": "#31009a",
+                    "secondary-fixed-dim": "#cabeff",
+                    "tertiary": "#4cd6ff",
+                    "on-background": "#e2e2e9",
+                    "surface-tint": "#b5c4ff",
+                    "on-tertiary": "#003543",
+                    "error": "#ffb4ab",
+                    "outline": "#8d90a0",
+                    "tertiary-fixed-dim": "#4cd6ff",
+                    "on-error-container": "#ffdad6",
+                    "on-primary": "#00297b",
+                    "surface-container": "#1e1f25",
+                    "surface-container-high": "#282a2f",
+                    "on-surface": "#e2e2e9",
+                    "inverse-surface": "#e2e2e9",
+                    "inverse-on-surface": "#2e3036",
+                    "on-surface-variant": "#c3c5d7",
+                    "on-primary-fixed-variant": "#003cad",
+                    "tertiary-container": "#009dc1",
+                    "on-secondary-fixed": "#1c0062",
+                    "secondary": "#cabeff",
+                    "on-primary-fixed": "#00164d",
+                    "on-primary-container": "#00236d",
+                    "primary-container": "#648aff",
+                    "surface-bright": "#37393f",
+                    "surface-container-highest": "#33353a",
+                    "on-tertiary-fixed": "#001f28",
+                    "on-secondary-container": "#b9aaff",
+                    "on-secondary-fixed-variant": "#4816cb",
+                    "secondary-container": "#4816cb",
+                    "background": "#111318",
+                    "outline-variant": "#434654",
+                    "primary": "#b5c4ff",
+                    "tertiary-fixed": "#b7eaff",
+                    "secondary-fixed": "#e6deff",
+                    "surface-container-low": "#1a1b21",
+                    "on-tertiary-container": "#002e3a",
+                    "on-error": "#690005",
+                    "surface": "#111318"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "2xl": "20px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "container-max": "1440px",
+                    "stack-xl": "64px",
+                    "margin-mobile": "16px",
+                    "stack-lg": "32px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "gutter": "24px",
+                    "margin-desktop": "48px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "body-base": ["Inter"],
+                    "label-caps": ["Geist"],
+                    "mono-technical": ["Geist"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                    "body-base": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                    "mono-technical": ["13px", {"lineHeight": "20px", "fontWeight": "450"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0B0D12;
+            color: #e2e2e9;
+            overflow-x: hidden;
+        }
+        .glass-pane {
+            background: rgba(18, 22, 31, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+        }
+        .ai-glow-border {
+            position: relative;
+            background: rgba(18, 22, 31, 0.8);
+            border-radius: 20px;
+        }
+        .ai-glow-border::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 21px;
+            padding: 1px;
+            background: linear-gradient(90deg, #b5c4ff, #4cd6ff, #b5c4ff);
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: shimmer 4s linear infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+        .magnetic-button {
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .magnetic-button:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(181, 196, 255, 0.2);
+        }
+        .funnel-step {
+            clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%, 10% 50%);
+        }
+        .scan-line {
+            background: linear-gradient(to bottom, transparent, rgba(181, 196, 255, 0.5), transparent);
+            animation: scan 3s ease-in-out infinite;
+        }
+        @keyframes scan {
+            0%, 100% { top: 0%; }
+            50% { top: 100%; }
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0b0d12; }
+        ::-webkit-scrollbar-thumb { background: #33353a; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body-base selection:bg-primary/30">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-72 left-0 top-0 fixed border-r border-white/10 bg-surface-container/80 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.5)] flex flex-col py-8 z-50">
+<div class="px-8 mb-10 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center text-on-primary-container shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface leading-tight">HireFlow AI</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Elite Recruitment</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1 px-4">
+<a class="flex items-center gap-4 px-6 py-3 text-primary bg-primary-container/10 border-r-4 border-primary shadow-[0_0_15px_rgba(181,196,255,0.3)] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-base">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-base">Talent Pipeline</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-body-base">AI Sourcing</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-body-base">Interviews</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-body-base">Analytics</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-base">Settings</span>
+</a>
+</nav>
+<div class="px-4 mt-auto space-y-4">
+<button class="w-full py-4 bg-primary text-on-primary font-bold rounded-2xl magnetic-button flex items-center justify-center gap-2 shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+                New Search
+            </button>
+<div class="pt-4 border-t border-white/5">
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span>Support</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined">dark_mode</span>
+<span>Theme</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Top Navigation -->
+<header class="fixed top-0 right-0 w-[calc(100%-288px)] h-16 bg-surface-dim/50 backdrop-blur-md border-b border-white/5 flex justify-between items-center px-8 z-40">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:bg-white/10 transition-all" placeholder="Search talent, roles, or insights..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<button class="relative text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">auto_awesome</span>
+</button>
+<div class="flex items-center gap-3 pl-6 border-l border-white/10">
+<div class="text-right">
+<p class="text-sm font-bold text-on-surface">Sarah Mitchell</p>
+<p class="text-[10px] text-on-surface-variant font-mono-technical">Lead Recruiter</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary p-[1px]">
+<div class="w-full h-full rounded-full bg-surface-dim flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female tech recruiter with a confident smile, wearing a stylish dark blazer. The lighting is soft and cinematic, with a subtle bokeh background of a modern office environment. High-end editorial photography style with a cool color grade matching the tech interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCgCC0ytT5C8D2CDfPfIotornXtwY3a7CmC6rCWz9psAcLdrGS9x27MLOcQFsRjL5nbecfVDozSi8BkUsAaViacJs0V6yspgy2deQ0uGtynzzN9WTXh9ciU3vg8YCJN9mzM6BXJSz2lDAACAph0hhM9x8XDe7RE36Ch4gTt7KX1ZgjjauikAWOI3WfOH4lhEiKFdr9JAG6b4HBjtcpm0urbHMF-tjhmWYSggAc0_ITR3FHTYyyvI0q9BJq_XEexSboYVsyC1lZ43XB"/>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-72 pt-24 pb-12 px-8 min-h-screen relative">
+<!-- Animated Background Decoration -->
+<div class="fixed inset-0 pointer-events-none opacity-20">
+<div class="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full"></div>
+<div class="absolute bottom-[-10%] left-[10%] w-[500px] h-[500px] bg-secondary/10 blur-[100px] rounded-full"></div>
+</div>
+<div class="max-w-container-max mx-auto relative z-10">
+<!-- Hero Section -->
+<section class="flex flex-col md:flex-row items-center justify-between gap-12 mb-stack-xl">
+<div class="flex-1 space-y-4">
+<div class="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary rounded-full border border-primary/20">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">AI Intelligence Active</span>
+</div>
+<h2 class="font-display-lg text-display-lg leading-tight">Welcome back, <span class="text-primary">Sarah</span>.</h2>
+<p class="text-on-surface-variant text-lg max-w-xl">
+                        Your AI sourcing agents have identified 4 high-potential candidates for the Senior Staff Engineer role since you last logged in.
+                    </p>
+<div class="flex gap-4 pt-4">
+<button class="px-8 py-3 bg-primary text-on-primary font-bold rounded-2xl magnetic-button">Review Talent</button>
+<button class="px-8 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-on-surface font-bold rounded-2xl transition-all">Daily Briefing</button>
+</div>
+</div>
+<div class="w-full md:w-[450px] h-[350px] relative">
+<!-- STITCH_THREEJS_START:ANIMATION_2 class="absolute inset-0 w-full h-full drop-shadow-[0_0_40px_rgba(181,196,255,0.2)]" -->
+<div class="absolute inset-0 w-full h-full drop-shadow-[0_0_40px_rgba(181,196,255,0.2)]" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_2" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_2');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+
+// Holographic AI Orb
+const geometry = new THREE.IcosahedronGeometry(1.5, 64);
+const material = new THREE.MeshNormalMaterial({
+  wireframe: false,
+  transparent: true,
+  opacity: 0.8,
+});
+
+// Using a custom shader for a pulsing holographic effect
+const shaderMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    u_time: { value: 0 },
+    u_color: { value: new THREE.Color(0x4F7CFF) },
+    u_color2: { value: new THREE.Color(0x7C5CFF) }
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    uniform float u_time;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      vec3 pos = position + normal * sin(position.y * 10.0 + u_time * 2.0) * 0.05;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    uniform float u_time;
+    uniform vec3 u_color;
+    uniform vec3 u_color2;
+    void main() {
+      float pulse = (sin(u_time * 1.5) + 1.0) / 2.0;
+      vec3 color = mix(u_color, u_color2, vPosition.y * 0.5 + 0.5);
+      float rim = 1.0 - max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0);
+      rim = pow(rim, 3.0);
+      gl_FragColor = vec4(color + rim, rim * 0.5 + 0.3);
+    }
+  `,
+  transparent: true,
+  side: THREE.DoubleSide
+});
+
+const orb = new THREE.Mesh(geometry, shaderMaterial);
+scene.add(orb);
+
+// Add some floating cubes/particles for depth
+const particleCount = 20;
+const particles = new THREE.Group();
+const cubeGeom = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const cubeMat = new THREE.MeshBasicMaterial({ color: 0x4F7CFF, transparent: true, opacity: 0.5 });
+
+for (let i = 0; i < particleCount; i++) {
+  const cube = new THREE.Mesh(cubeGeom, cubeMat);
+  cube.position.set(
+    (Math.random() - 0.5) * 5,
+    (Math.random() - 0.5) * 5,
+    (Math.random() - 0.5) * 5
+  );
+  cube.userData.velocity = new THREE.Vector3(
+    (Math.random() - 0.5) * 0.01,
+    (Math.random() - 0.5) * 0.01,
+    (Math.random() - 0.5) * 0.01
+  );
+  particles.add(cube);
+}
+scene.add(particles);
+
+camera.position.z = 5;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const time = performance.now() * 0.001;
+  shaderMaterial.uniforms.u_time.value = time;
+  
+  orb.rotation.y += 0.005;
+  orb.rotation.z += 0.003;
+  
+  particles.children.forEach(p => {
+    p.position.add(p.userData.velocity);
+    if (Math.abs(p.position.x) > 2.5) p.userData.velocity.x *= -1;
+    if (Math.abs(p.position.y) > 2.5) p.userData.velocity.y *= -1;
+    if (Math.abs(p.position.z) > 2.5) p.userData.velocity.z *= -1;
+    p.rotation.x += 0.01;
+    p.rotation.y += 0.01;
+  });
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  const w = container.clientWidth || window.innerWidth;
+  const h = container.clientHeight || window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+animate();
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_2 -->
+</div>
+</section>
+<!-- Stats Grid -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-stack-xl">
+<div class="glass-pane p-8 flex flex-col gap-4 group hover:bg-white/[0.07] transition-all duration-500">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-2 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">work</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase">Open Positions</p>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-[40px] text-on-surface count-up" data-target="12">0</span>
+<span class="text-primary text-sm font-bold">+2 this week</span>
+</div>
+</div>
+</div>
+<div class="glass-pane p-8 flex flex-col gap-4 group hover:bg-white/[0.07] transition-all duration-500">
+<div class="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center text-secondary mb-2 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">person_search</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase">Candidates Screened</p>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-[40px] text-on-surface count-up" data-target="482">0</span>
+<span class="text-tertiary text-sm font-bold">↑ 12%</span>
+</div>
+</div>
+</div>
+<div class="glass-pane p-8 flex flex-col gap-4 group hover:bg-white/[0.07] transition-all duration-500">
+<div class="w-12 h-12 bg-tertiary/10 rounded-xl flex items-center justify-center text-tertiary mb-2 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div>
+<p class="text-on-surface-variant font-label-caps text-label-caps uppercase">Hiring Success Rate</p>
+<div class="flex items-baseline gap-2">
+<span class="font-display-lg text-[40px] text-on-surface count-up" data-target="94">0</span><span class="font-display-lg text-[40px]">%</span>
+<span class="text-on-surface-variant text-sm font-mono-technical">Elite Tier</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Dashboard Layout: Main and Sidebar -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Charts and Tables -->
+<div class="lg:col-span-8 space-y-8">
+<!-- Hiring Funnel -->
+<div class="glass-pane p-8 overflow-hidden relative">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-headline-md text-headline-md">Hiring Funnel</h3>
+<select class="bg-white/5 border-none text-xs rounded-lg py-1 px-3 text-on-surface-variant focus:ring-1 focus:ring-primary">
+<option>Last 30 Days</option>
+<option>Last 90 Days</option>
+</select>
+</div>
+<div class="relative h-64 flex items-center justify-around gap-1">
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-full bg-primary/20 h-40 rounded-xl flex items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-x-0 bottom-0 bg-primary/40 h-[90%] transition-all duration-700 group-hover:h-[95%]"></div>
+<span class="relative font-bold text-xl">1.2k</span>
+</div>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Applied</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-full bg-primary/20 h-32 rounded-xl flex items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-x-0 bottom-0 bg-primary/50 h-[60%] transition-all duration-700 group-hover:h-[65%]"></div>
+<span class="relative font-bold text-xl">482</span>
+</div>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Screened</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-full bg-primary/20 h-24 rounded-xl flex items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-x-0 bottom-0 bg-primary/60 h-[40%] transition-all duration-700 group-hover:h-[45%]"></div>
+<span class="relative font-bold text-xl">84</span>
+</div>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Interviewed</span>
+</div>
+<div class="flex flex-col items-center gap-4 flex-1">
+<div class="w-full bg-primary/20 h-16 rounded-xl flex items-center justify-center relative overflow-hidden group">
+<div class="absolute inset-x-0 bottom-0 bg-primary/80 h-[25%] transition-all duration-700 group-hover:h-[30%]"></div>
+<span class="relative font-bold text-xl">12</span>
+</div>
+<span class="text-[10px] uppercase font-bold text-on-surface-variant">Hired</span>
+</div>
+</div>
+</div>
+<!-- Recent Applications -->
+<div class="glass-pane p-0 overflow-hidden">
+<div class="px-8 py-6 border-b border-white/5 flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md">Recent Applications</h3>
+<button class="text-primary text-sm font-bold hover:underline">View All</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-white/[0.02] border-b border-white/5">
+<tr>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Candidate</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Role</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">AI Match</th>
+<th class="px-8 py-4 text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Status</th>
+<th class="px-8 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="Close-up portrait of a professional male software engineer with glasses, looking thoughtful against a clean white background. High resolution, sharp focus, professional headshot photography for a tech profile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAjG1Z9gW4BuvlfSFMNIrTHhpnmBiYxqnIxVes_Q5-HXNzrNbfjxb7Y4gURuus3Ki1DSoYdw4suzYzRoe8jJSHotQ9hs45qdokc7T6pj4YcxZICvf1ixDHKg6d0G-tuJsJICVb2Ae-UwGciga1HxxXODcv_tHvoKEuJjAlawX5S6iNv7L6JQGlb7_VIhJu_2rwemqncDfXSBksDha27fogmobtGQzA5EnqKTkO11UNxDrqfIQTm0FxPjz6YCnE9A9iMHPB6N7S4Fzv"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Alex Rivera</p>
+<p class="text-xs text-on-surface-variant">San Francisco, CA</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<p class="text-sm font-mono-technical">Staff Product Designer</p>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<span class="text-primary font-bold">98%</span>
+<div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[98%]"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-tighter">Initial Screen</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-white/10 rounded-lg text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="A portrait of a young female data scientist with curly hair, smiling warmly. She is wearing a modern casual outfit in a bright, minimalist studio setting. Professional lighting creates a clean, elite tech-recruitment aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAxKBnIeiX9_AAwold1w1x87K4HLZGEookourM7UQFze3h-McQEBHaRFThzsgZ0udTno9le-k_Hj1CMe1fVNagNQYLH1KM8coE5t1kvSNXHFx4jPFeW9F13Hu_brCQuqBuqbCWuUcrybRUggXJjyhVPZ91fUqfwyxWRHo9DfezeqNF3vJZMZbaKoSI_roW4vcWH8-hFSDufa7XVSz81JO_ESzRj49X6se1FBqUPDUBggKrCR-T5QbzS7KRsBHvKNAMXlRQc1y5K0h-"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Jordan Smith</p>
+<p class="text-xs text-on-surface-variant">Austin, TX</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<p class="text-sm font-mono-technical">Sr. Machine Learning Eng</p>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<span class="text-tertiary font-bold">94%</span>
+<div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[94%]"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-tertiary/10 text-tertiary text-[10px] font-bold rounded-full uppercase tracking-tighter">Technical Interview</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-white/10 rounded-lg text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-white/[0.03] transition-colors group">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-white/10">
+<img class="w-full h-full object-cover" data-alt="A side profile of a middle-aged male engineering director with a salt-and-pepper beard. He is wearing a high-quality navy blue sweater in a brightly lit glass-walled office background. The style is premium corporate tech photography with a shallow depth of field." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAv7HzzfopnxxKbCK43e-Fpk1uEPDIvqcMQ8KFbV0RE0F0tV8JFJS7d4Vuza93zhFNZA9IxbsD6esYq0HydSS5hINC5nZAoNUF3GTopN4HWqhqW0Mztp1-KcmfASs6dG26gaPM4hyhGC9J_EB3qbVc-HBi3pTFRkzTj1YaYz4_PpBZ8UkewzEFiWKjYkC5Gu_ou5MR1pkE1oiHteVuIDGpg6-uzIW5kQlPsOjrzAB7hMFDFh9CV1xpTfCEPsTtIChv9iPLJ75sKcJpY"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Chen Wei</p>
+<p class="text-xs text-on-surface-variant">New York, NY</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<p class="text-sm font-mono-technical">VP of Engineering</p>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-2">
+<span class="text-primary font-bold">91%</span>
+<div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[91%]"></div>
+</div>
+</div>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full uppercase tracking-tighter">Offer Extended</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 hover:bg-white/10 rounded-lg text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Right Column: AI Assistant & Alerts -->
+<div class="lg:col-span-4 space-y-8">
+<!-- AI Assistant Panel -->
+<div class="ai-glow-border p-8 min-h-[400px] flex flex-col shadow-[0_0_30px_rgba(181,196,255,0.1)]">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h3 class="font-headline-md text-headline-md">AI Insights</h3>
+</div>
+<div class="space-y-6 flex-1">
+<div class="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden group">
+<div class="scan-line absolute inset-x-0 h-1 z-0 pointer-events-none"></div>
+<div class="flex justify-between items-start relative z-10">
+<p class="text-xs font-bold text-primary uppercase tracking-widest">Hiring Alert</p>
+<span class="text-[10px] text-on-surface-variant">2m ago</span>
+</div>
+<p class="text-sm text-on-surface leading-relaxed relative z-10">High market demand for <b>Machine Learning Engineers</b>. Recommend adjusting offer ceiling for current candidates.</p>
+</div>
+<div class="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-4">
+<p class="text-xs font-bold text-tertiary uppercase tracking-widest">Pending Interviews</p>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">schedule</span>
+</div>
+<div>
+<p class="text-sm font-bold">14:30 - Jordan S.</p>
+<p class="text-[10px] text-on-surface-variant">Technical Round</p>
+</div>
+</div>
+<button class="text-primary material-symbols-outlined">arrow_forward</button>
+</div>
+<div class="flex items-center justify-between opacity-60">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">schedule</span>
+</div>
+<div>
+<p class="text-sm font-bold">16:00 - Alex R.</p>
+<p class="text-[10px] text-on-surface-variant">Portfolio Review</p>
+</div>
+</div>
+<button class="text-primary material-symbols-outlined">arrow_forward</button>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-white/10">
+<div class="relative">
+<input class="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Ask AI Assistant..." type="text"/>
+<button class="absolute right-3 top-1/2 -translate-y-1/2 text-primary">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Market Context Card -->
+<div class="glass-pane p-8 relative overflow-hidden h-48 group">
+<div class="absolute inset-0 z-0">
+
+</div>
+<div class="relative z-10 flex flex-col justify-between h-full">
+<div>
+<h4 class="font-bold text-lg mb-1">Global Market Heatmap</h4>
+<p class="text-xs text-on-surface-variant">AI sourcing is currently targeting talent in London &amp; Berlin clusters.</p>
+</div>
+<button class="flex items-center gap-2 text-primary font-bold text-sm">
+                                View Heatmap
+                                <span class="material-symbols-outlined text-sm">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Count up animation for stats
+        const observerOptions = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = entry.target;
+                    const countTo = parseInt(target.getAttribute('data-target'));
+                    let currentCount = 0;
+                    const duration = 1500;
+                    const increment = countTo / (duration / 16);
+
+                    const updateCount = () => {
+                        currentCount += increment;
+                        if (currentCount < countTo) {
+                            target.innerText = Math.floor(currentCount);
+                            requestAnimationFrame(updateCount);
+                        } else {
+                            target.innerText = countTo;
+                        }
+                    };
+                    updateCount();
+                    observer.unobserve(target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.count-up').forEach(el => observer.observe(el));
+
+        // Magnetic button micro-interaction
+        document.querySelectorAll('.magnetic-button').forEach(btn => {
+            btn.addEventListener('mousemove', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                btn.style.transform = `translate(${x * 0.15}px, ${y * 0.15}px) scale(1.02)`;
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = `translate(0, 0) scale(1)`;
+            });
+        });
+    </script>
+</body></html>

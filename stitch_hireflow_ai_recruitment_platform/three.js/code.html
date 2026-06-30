@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+<!-- STITCH_THREEJS_START:ANIMATION_2 class="fixed inset-0 w-full h-full bg-transparent" -->
+<div class="fixed inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_2" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_2');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  const width = container.clientWidth || window.innerWidth;
+const height = container.clientHeight || window.innerHeight;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+container.appendChild(renderer.domElement);
+
+// Holographic AI Orb
+const geometry = new THREE.IcosahedronGeometry(1.5, 64);
+const material = new THREE.MeshNormalMaterial({
+  wireframe: false,
+  transparent: true,
+  opacity: 0.8,
+});
+
+// Using a custom shader for a pulsing holographic effect
+const shaderMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    u_time: { value: 0 },
+    u_color: { value: new THREE.Color(0x4F7CFF) },
+    u_color2: { value: new THREE.Color(0x7C5CFF) }
+  },
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    uniform float u_time;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = position;
+      vec3 pos = position + normal * sin(position.y * 10.0 + u_time * 2.0) * 0.05;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    uniform float u_time;
+    uniform vec3 u_color;
+    uniform vec3 u_color2;
+    void main() {
+      float pulse = (sin(u_time * 1.5) + 1.0) / 2.0;
+      vec3 color = mix(u_color, u_color2, vPosition.y * 0.5 + 0.5);
+      float rim = 1.0 - max(dot(vNormal, vec3(0.0, 0.0, 1.0)), 0.0);
+      rim = pow(rim, 3.0);
+      gl_FragColor = vec4(color + rim, rim * 0.5 + 0.3);
+    }
+  `,
+  transparent: true,
+  side: THREE.DoubleSide
+});
+
+const orb = new THREE.Mesh(geometry, shaderMaterial);
+scene.add(orb);
+
+// Add some floating cubes/particles for depth
+const particleCount = 20;
+const particles = new THREE.Group();
+const cubeGeom = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const cubeMat = new THREE.MeshBasicMaterial({ color: 0x4F7CFF, transparent: true, opacity: 0.5 });
+
+for (let i = 0; i < particleCount; i++) {
+  const cube = new THREE.Mesh(cubeGeom, cubeMat);
+  cube.position.set(
+    (Math.random() - 0.5) * 5,
+    (Math.random() - 0.5) * 5,
+    (Math.random() - 0.5) * 5
+  );
+  cube.userData.velocity = new THREE.Vector3(
+    (Math.random() - 0.5) * 0.01,
+    (Math.random() - 0.5) * 0.01,
+    (Math.random() - 0.5) * 0.01
+  );
+  particles.add(cube);
+}
+scene.add(particles);
+
+camera.position.z = 5;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const time = performance.now() * 0.001;
+  shaderMaterial.uniforms.u_time.value = time;
+  
+  orb.rotation.y += 0.005;
+  orb.rotation.z += 0.003;
+  
+  particles.children.forEach(p => {
+    p.position.add(p.userData.velocity);
+    if (Math.abs(p.position.x) > 2.5) p.userData.velocity.x *= -1;
+    if (Math.abs(p.position.y) > 2.5) p.userData.velocity.y *= -1;
+    if (Math.abs(p.position.z) > 2.5) p.userData.velocity.z *= -1;
+    p.rotation.x += 0.01;
+    p.rotation.y += 0.01;
+  });
+
+  renderer.render(scene, camera);
+}
+
+window.addEventListener('resize', () => {
+  const w = container.clientWidth || window.innerWidth;
+  const h = container.clientHeight || window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+animate();
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_2 -->
+</body>
+</html>

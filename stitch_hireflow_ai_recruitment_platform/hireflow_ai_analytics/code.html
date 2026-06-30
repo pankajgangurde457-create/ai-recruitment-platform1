@@ -1,0 +1,610 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>HireFlow AI | Executive Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Geist:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(30, 31, 37, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
+        }
+        .ai-glow {
+            box-shadow: 0 0 20px rgba(181, 196, 255, 0.15);
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        body {
+            background-color: #0b0d12;
+            color: #e2e2e9;
+            overflow-x: hidden;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-base text-body-base selection:bg-primary/30">
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "primary": "#b5c4ff",
+                      "on-secondary-fixed-variant": "#4816cb",
+                      "on-primary-fixed-variant": "#003cad",
+                      "surface-tint": "#b5c4ff",
+                      "primary-container": "#648aff",
+                      "inverse-primary": "#1a53d6",
+                      "tertiary-fixed": "#b7eaff",
+                      "surface-container": "#1e1f25",
+                      "surface-container-lowest": "#0c0e13",
+                      "on-surface-variant": "#c3c5d7",
+                      "surface-container-high": "#282a2f",
+                      "secondary-fixed": "#e6deff",
+                      "on-secondary-fixed": "#1c0062",
+                      "on-error-container": "#ffdad6",
+                      "secondary-container": "#4816cb",
+                      "tertiary-fixed-dim": "#4cd6ff",
+                      "on-tertiary": "#003543",
+                      "outline-variant": "#434654",
+                      "surface-bright": "#37393f",
+                      "on-surface": "#e2e2e9",
+                      "surface-container-highest": "#33353a",
+                      "primary-fixed": "#dce1ff",
+                      "on-tertiary-fixed-variant": "#004e60",
+                      "background": "#111318",
+                      "error-container": "#93000a",
+                      "on-tertiary-container": "#002e3a",
+                      "secondary": "#cabeff",
+                      "on-tertiary-fixed": "#001f28",
+                      "error": "#ffb4ab",
+                      "on-secondary-container": "#b9aaff",
+                      "on-secondary": "#31009a",
+                      "on-primary-fixed": "#00164d",
+                      "on-error": "#690005",
+                      "on-primary": "#00297b",
+                      "surface": "#111318",
+                      "outline": "#8d90a0",
+                      "inverse-on-surface": "#2e3036",
+                      "surface-dim": "#111318",
+                      "surface-container-low": "#1a1b21",
+                      "on-background": "#e2e2e9",
+                      "tertiary-container": "#009dc1",
+                      "tertiary": "#4cd6ff",
+                      "inverse-surface": "#e2e2e9",
+                      "secondary-fixed-dim": "#cabeff",
+                      "on-primary-container": "#00236d",
+                      "primary-fixed-dim": "#b5c4ff",
+                      "surface-variant": "#33353a"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-sm": "8px",
+                      "stack-md": "16px",
+                      "stack-lg": "32px",
+                      "margin-desktop": "48px",
+                      "gutter": "24px",
+                      "container-max": "1440px",
+                      "stack-xl": "64px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "label-caps": ["Geist"],
+                      "display-lg": ["Inter"],
+                      "body-base": ["Inter"],
+                      "mono-technical": ["Geist"],
+                      "headline-md": ["Inter"]
+              },
+              "fontSize": {
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                      "body-base": ["16px", {"lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400"}],
+                      "mono-technical": ["13px", {"lineHeight": "20px", "fontWeight": "450"}],
+                      "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<!-- SideNavBar Shell -->
+<aside class="fixed left-0 top-0 h-screen w-72 border-r border-white/10 bg-surface-container/80 backdrop-blur-xl flex flex-col py-8 z-50">
+<div class="px-8 mb-12">
+<h1 class="font-headline-md text-headline-md font-bold text-on-surface">HireFlow AI</h1>
+<p class="text-on-surface-variant font-label-caps opacity-60">Elite Recruitment</p>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Active: Analytics -->
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-300 hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-base">Dashboard</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-300 hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-body-base">Talent Pipeline</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-300 hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span class="font-body-base">AI Sourcing</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-300 hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">event_available</span>
+<span class="font-body-base">Interviews</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-primary bg-primary-container/10 border-r-4 border-primary shadow-[0_0_15px_rgba(181,196,255,0.3)] transition-all duration-300" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-body-base">Analytics</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-300 hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-body-base">Settings</span>
+</a>
+</nav>
+<div class="px-6 mb-8">
+<button class="w-full py-3 rounded-xl bg-primary text-on-primary font-semibold flex items-center justify-center gap-2 transition-transform active:scale-95 duration-200 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+<span>New Search</span>
+</button>
+</div>
+<div class="border-t border-white/5 pt-6 space-y-1">
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-300" href="#">
+<span class="material-symbols-outlined">help_outline</span>
+<span class="font-body-base">Support</span>
+</a>
+<a class="flex items-center gap-4 px-6 py-3 text-on-surface-variant hover:text-on-surface transition-all duration-300" href="#">
+<span class="material-symbols-outlined">dark_mode</span>
+<span class="font-body-base">Theme</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar Shell -->
+<header class="fixed top-0 right-0 w-[calc(100%-288px)] h-16 bg-surface-dim/50 backdrop-blur-md border-b border-white/5 flex items-center px-8 z-40">
+<div class="flex-1 max-w-xl">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
+<input class="w-full bg-white/5 border border-white/10 rounded-full py-1.5 pl-10 pr-4 text-sm focus:outline-none focus:border-primary/50 transition-colors" placeholder="Search analytics, candidates, or reports..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-4 ml-auto">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">auto_awesome</span>
+</button>
+<div class="h-8 w-px bg-white/10 mx-2"></div>
+<button class="flex items-center gap-3 pl-2 pr-1 py-1 rounded-full hover:bg-white/5 transition-colors">
+<span class="text-sm font-medium">Recruitment Director</span>
+<span class="material-symbols-outlined text-3xl">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-72 pt-24 pb-16 px-8 max-w-[1600px]">
+<!-- Header Actions Row -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+<div>
+<h2 class="font-display-lg text-display-lg text-on-surface">Executive Analytics</h2>
+<p class="text-on-surface-variant mt-2">Real-time performance overview and predictive hiring insights.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="glass-card px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span class="text-sm font-medium">Last 30 Days</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+<div class="glass-card px-4 py-2 rounded-xl flex items-center gap-2 cursor-pointer hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+<span class="text-sm font-medium">All Departments</span>
+<span class="material-symbols-outlined text-sm">expand_more</span>
+</div>
+<button class="bg-surface-container-high px-4 py-2 rounded-xl border border-white/10 hover:border-primary/30 transition-all flex items-center gap-2 group">
+<span class="material-symbols-outlined text-sm group-hover:text-primary">download</span>
+<span class="text-sm font-medium">Export Report</span>
+</button>
+</div>
+</div>
+<!-- Top KPI Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+<!-- Open Jobs -->
+<div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+<div class="flex items-center justify-between mb-4">
+<span class="text-on-surface-variant font-label-caps">Open Jobs</span>
+<span class="material-symbols-outlined text-primary/50">work_outline</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold">142</span>
+<span class="text-primary text-xs font-medium pb-1.5 flex items-center">+12% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<div class="mt-4 h-8 w-full opacity-40">
+<div class="flex items-end gap-1 h-full">
+<div class="bg-primary w-full h-1/2 rounded-t-sm"></div>
+<div class="bg-primary w-full h-3/4 rounded-t-sm"></div>
+<div class="bg-primary w-full h-2/3 rounded-t-sm"></div>
+<div class="bg-primary w-full h-full rounded-t-sm"></div>
+<div class="bg-primary w-full h-4/5 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Applications -->
+<div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+<div class="flex items-center justify-between mb-4">
+<span class="text-on-surface-variant font-label-caps">Applications</span>
+<span class="material-symbols-outlined text-primary/50">description</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold">2,841</span>
+<span class="text-primary text-xs font-medium pb-1.5 flex items-center">+24% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<div class="mt-4 h-8 w-full opacity-40">
+<div class="flex items-end gap-1 h-full">
+<div class="bg-primary w-full h-1/3 rounded-t-sm"></div>
+<div class="bg-primary w-full h-1/2 rounded-t-sm"></div>
+<div class="bg-primary w-full h-3/4 rounded-t-sm"></div>
+<div class="bg-primary w-full h-2/3 rounded-t-sm"></div>
+<div class="bg-primary w-full h-full rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Interviews -->
+<div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+<div class="flex items-center justify-between mb-4">
+<span class="text-on-surface-variant font-label-caps">Interviews</span>
+<span class="material-symbols-outlined text-primary/50">forum</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold">428</span>
+<span class="text-error text-xs font-medium pb-1.5 flex items-center">-2% <span class="material-symbols-outlined text-xs">trending_down</span></span>
+</div>
+<div class="mt-4 h-8 w-full opacity-40">
+<div class="flex items-end gap-1 h-full">
+<div class="bg-primary w-full h-4/5 rounded-t-sm"></div>
+<div class="bg-primary w-full h-2/3 rounded-t-sm"></div>
+<div class="bg-primary w-full h-full rounded-t-sm"></div>
+<div class="bg-primary w-full h-1/2 rounded-t-sm"></div>
+<div class="bg-primary w-full h-1/3 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Offers -->
+<div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+<div class="flex items-center justify-between mb-4">
+<span class="text-on-surface-variant font-label-caps">Offers</span>
+<span class="material-symbols-outlined text-primary/50">assignment_turned_in</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold">86</span>
+<span class="text-primary text-xs font-medium pb-1.5 flex items-center">+5% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<div class="mt-4 h-8 w-full opacity-40">
+<div class="flex items-end gap-1 h-full">
+<div class="bg-primary w-full h-1/2 rounded-t-sm"></div>
+<div class="bg-primary w-full h-3/4 rounded-t-sm"></div>
+<div class="bg-primary w-full h-full rounded-t-sm"></div>
+<div class="bg-primary w-full h-4/5 rounded-t-sm"></div>
+<div class="bg-primary w-full h-2/3 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Hires -->
+<div class="glass-card p-6 rounded-2xl relative overflow-hidden group">
+<div class="flex items-center justify-between mb-4">
+<span class="text-on-surface-variant font-label-caps">Hires</span>
+<span class="material-symbols-outlined text-primary/50">person_add</span>
+</div>
+<div class="flex items-end gap-3">
+<span class="text-3xl font-bold">62</span>
+<span class="text-primary text-xs font-medium pb-1.5 flex items-center">+18% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+<div class="mt-4 h-8 w-full opacity-40">
+<div class="flex items-end gap-1 h-full">
+<div class="bg-primary w-full h-1/4 rounded-t-sm"></div>
+<div class="bg-primary w-full h-1/2 rounded-t-sm"></div>
+<div class="bg-primary w-full h-2/3 rounded-t-sm"></div>
+<div class="bg-primary w-full h-3/4 rounded-t-sm"></div>
+<div class="bg-primary w-full h-full rounded-t-sm"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Middle Section: Funnel & Trends -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+<!-- Hiring Funnel -->
+<div class="lg:col-span-5 glass-card p-8 rounded-3xl relative">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline-md text-xl">Hiring Funnel</h3>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="space-y-6 relative">
+<!-- Funnel Visual (Semantic Simulation) -->
+<div class="flex flex-col items-center gap-2">
+<div class="w-full h-12 bg-primary/20 border border-primary/30 rounded-lg flex items-center px-4 justify-between group cursor-help hover:bg-primary/30 transition-colors">
+<span class="text-xs font-mono-technical">SOURCED</span>
+<span class="text-lg font-bold">12,400</span>
+</div>
+<div class="w-[85%] h-12 bg-primary/30 border border-primary/40 rounded-lg flex items-center px-4 justify-between group cursor-help hover:bg-primary/40 transition-colors">
+<span class="text-xs font-mono-technical">SCREENED</span>
+<span class="text-lg font-bold">2,841</span>
+</div>
+<div class="w-[70%] h-12 bg-primary/40 border border-primary/50 rounded-lg flex items-center px-4 justify-between group cursor-help hover:bg-primary/50 transition-colors">
+<span class="text-xs font-mono-technical">INTERVIEWED</span>
+<span class="text-lg font-bold">428</span>
+</div>
+<div class="w-[55%] h-12 bg-primary/50 border border-primary/60 rounded-lg flex items-center px-4 justify-between group cursor-help hover:bg-primary/60 transition-colors">
+<span class="text-xs font-mono-technical">OFFERED</span>
+<span class="text-lg font-bold">86</span>
+</div>
+<div class="w-[40%] h-12 bg-primary/70 border border-primary/80 rounded-lg flex items-center px-4 justify-between group cursor-help hover:bg-primary/80 transition-colors shadow-lg shadow-primary/20">
+<span class="text-xs font-mono-technical text-on-primary">HIRED</span>
+<span class="text-lg font-bold text-on-primary">62</span>
+</div>
+</div>
+</div>
+<div class="mt-8 pt-6 border-t border-white/5 grid grid-cols-2 gap-4">
+<div>
+<p class="text-xs text-on-surface-variant font-label-caps">Overall Conversion</p>
+<p class="text-2xl font-bold text-primary">0.5%</p>
+</div>
+<div>
+<p class="text-xs text-on-surface-variant font-label-caps">Time to Fill (Avg)</p>
+<p class="text-2xl font-bold">24 Days</p>
+</div>
+</div>
+</div>
+<!-- Hiring Trends -->
+<div class="lg:col-span-7 glass-card p-8 rounded-3xl">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-headline-md text-xl">Hiring Trends</h3>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-xs text-on-surface-variant">Applications</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="text-xs text-on-surface-variant">Hires</span>
+</div>
+</div>
+</div>
+<div class="h-64 relative flex items-end justify-between px-4 pb-6 group">
+<!-- Vertical Scanning Line Simulation -->
+<div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+<!-- Simplified Bars for Trend Visualization -->
+<div class="flex items-end gap-6 w-full h-full border-b border-white/10">
+<div class="flex-1 flex flex-col items-center justify-end gap-1 h-full">
+<div class="w-full bg-primary/20 rounded-t h-[40%]"></div>
+<span class="text-[10px] text-on-surface-variant font-mono-technical mt-2">JAN</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-end gap-1 h-full">
+<div class="w-full bg-primary/30 rounded-t h-[55%]"></div>
+<span class="text-[10px] text-on-surface-variant font-mono-technical mt-2">FEB</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-end gap-1 h-full">
+<div class="w-full bg-primary/40 rounded-t h-[75%]"></div>
+<span class="text-[10px] text-on-surface-variant font-mono-technical mt-2">MAR</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-end gap-1 h-full relative">
+<!-- Tooltip Highlight -->
+<div class="absolute -top-12 bg-surface-container-high border border-white/20 p-2 rounded-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+                                842 Apps
+                            </div>
+<div class="w-full bg-primary rounded-t h-[90%] shadow-[0_0_15px_rgba(181,196,255,0.4)]"></div>
+<span class="text-[10px] text-on-surface-variant font-mono-technical mt-2">APR</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-end gap-1 h-full">
+<div class="w-full bg-primary/50 rounded-t h-[65%]"></div>
+<span class="text-[10px] text-on-surface-variant font-mono-technical mt-2">MAY</span>
+</div>
+<div class="flex-1 flex flex-col items-center justify-end gap-1 h-full">
+<div class="w-full bg-primary/40 rounded-t h-[80%]"></div>
+<span class="text-[10px] text-on-surface-variant font-mono-technical mt-2">JUN</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Insights Card (Full Width) -->
+<div class="glass-card p-8 rounded-3xl mb-8 relative border-primary/20 ai-glow overflow-hidden">
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px]"></div>
+<div class="relative flex items-start gap-6">
+<div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">psychology</span>
+</div>
+<div class="flex-1">
+<h3 class="font-headline-md text-xl mb-4 flex items-center gap-3">
+                        AI Recruiting Insights
+                        <span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] rounded-full uppercase tracking-widest font-bold">Predictive</span>
+</h3>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all">
+<p class="text-on-surface-variant text-xs mb-1">Projected Time to Hire</p>
+<div class="flex items-end gap-2">
+<span class="text-2xl font-bold">18.5 Days</span>
+<span class="text-primary text-xs font-medium pb-1">-15% improvement vs 2023</span>
+</div>
+<p class="text-xs opacity-50 mt-2">AI suggests optimizing technical interview phase to reach 15 days.</p>
+</div>
+<div class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-error/20 transition-all">
+<div class="flex items-center justify-between mb-1">
+<p class="text-on-surface-variant text-xs">Risk Alerts</p>
+<span class="material-symbols-outlined text-error text-sm">warning</span>
+</div>
+<p class="text-lg font-semibold">3 High-Priority Roles at Risk</p>
+<p class="text-xs opacity-50 mt-2">Senior Architect and DevOps Lead roles have 0 active candidates in final stages.</p>
+</div>
+<div class="p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/20 transition-all">
+<p class="text-on-surface-variant text-xs mb-1">Candidate Sentiment</p>
+<div class="flex items-center gap-2">
+<div class="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[82%]"></div>
+</div>
+<span class="text-sm font-bold">82%</span>
+</div>
+<p class="text-xs opacity-50 mt-2">Candidates report high satisfaction with the initial technical screening process.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Animated Gradient Border Simulation -->
+<div class="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-primary via-secondary to-primary bg-[length:200%_auto] animate-[shimmer_5s_linear_infinite]"></div>
+</div>
+<!-- Bottom Section: Department, Performance, Heatmap -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Department Hiring -->
+<div class="glass-card p-6 rounded-3xl">
+<h3 class="font-headline-md text-lg mb-6">Department Hiring</h3>
+<div class="relative h-48 flex items-center justify-center">
+<!-- Fake Donut Chart -->
+<div class="w-40 h-40 rounded-full border-[12px] border-primary/20 border-t-primary border-r-primary/60 border-l-primary/40 relative flex items-center justify-center">
+<div class="text-center">
+<span class="text-2xl font-bold">142</span>
+<p class="text-[10px] text-on-surface-variant">TOTAL JOBS</p>
+</div>
+</div>
+</div>
+<div class="mt-6 space-y-3">
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span>Engineering</span>
+</div>
+<span class="font-bold">42</span>
+</div>
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary/60"></span>
+<span>Product &amp; Design</span>
+</div>
+<span class="font-bold">28</span>
+</div>
+<div class="flex items-center justify-between text-xs">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary/40"></span>
+<span>Sales &amp; Ops</span>
+</div>
+<span class="font-bold">35</span>
+</div>
+</div>
+</div>
+<!-- Recruiter Performance -->
+<div class="glass-card p-6 rounded-3xl">
+<h3 class="font-headline-md text-lg mb-6">Recruiter Performance</h3>
+<div class="space-y-5">
+<div class="space-y-1">
+<div class="flex justify-between text-xs mb-1">
+<span>Alexander Wright</span>
+<span class="font-mono-technical">12 Hires</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[95%]"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs mb-1">
+<span>Elena Rodriguez</span>
+<span class="font-mono-technical">9 Hires</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[75%]"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs mb-1">
+<span>Marcus Chen</span>
+<span class="font-mono-technical">8 Hires</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[65%]"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs mb-1">
+<span>Sarah Jenkins</span>
+<span class="font-mono-technical">6 Hires</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[50%]"></div>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 text-xs text-primary font-medium hover:underline">View Full Leaderboard</button>
+</div>
+<!-- Global Talent Heatmap -->
+<div class="glass-card rounded-3xl overflow-hidden flex flex-col">
+<div class="p-6">
+<h3 class="font-headline-md text-lg">Global Talent Heatmap</h3>
+<p class="text-xs text-on-surface-variant">Sourcing distribution by region.</p>
+</div>
+<div class="flex-1 relative min-h-[200px] bg-surface-container-low group">
+<!-- Mock Map Background -->
+<div class="absolute inset-0 opacity-20 grayscale invert contrast-125" data-alt="A stylized global world map silhouette with subtle glowing nodes and data points in a tech-noir aesthetic, deep dark background with primary blue accents." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCKdqw0HMknrUKQwhU5IQ4Basr0z12G0A5EukOLmbojdsjIZ2MfVWb_BL-PFCDEIjml0zXkJy__VPF90s14C9rcg3Q9yLum0EiSAMTIMjpK8ull_T8mx7vwKbDBR9aVrlWm0L3igT7G8fmxyYRcISpvKUWgfE8qk3hVfpboldvJQUzP_ULMV7sgQB4ETSuFM7hpn-q3eUagJkbkwm2LmF1tSYL3D2kBtfOyUv_akzIjlcvJiAUzFxRdJk5OZEaXQy4ehfyb3bDV2hwv')"></div>
+<!-- Pulsing Hotspots -->
+<div class="absolute top-[30%] left-[20%] w-4 h-4 bg-primary/60 rounded-full animate-ping"></div>
+<div class="absolute top-[30%] left-[20%] w-3 h-3 bg-primary rounded-full"></div>
+<div class="absolute top-[40%] left-[75%] w-3 h-3 bg-primary/40 rounded-full animate-ping"></div>
+<div class="absolute top-[40%] left-[75%] w-2 h-2 bg-primary/80 rounded-full"></div>
+<div class="absolute top-[60%] left-[50%] w-5 h-5 bg-primary/30 rounded-full animate-ping"></div>
+<div class="absolute top-[60%] left-[50%] w-4 h-4 bg-primary/50 rounded-full"></div>
+<div class="absolute bottom-4 left-4 right-4 glass-card p-3 rounded-xl flex items-center justify-between text-[10px] font-mono-technical">
+<div class="flex gap-4">
+<div class="flex flex-col">
+<span class="opacity-50 uppercase">NORTH AMER</span>
+<span class="font-bold text-primary">42%</span>
+</div>
+<div class="flex flex-col">
+<span class="opacity-50 uppercase">EUROPE</span>
+<span class="font-bold text-primary">31%</span>
+</div>
+<div class="flex flex-col">
+<span class="opacity-50 uppercase">APAC</span>
+<span class="font-bold text-primary">18%</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-sm">open_in_new</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions and effects
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    </script>
+</body></html>
