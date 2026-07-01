@@ -1,9 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { aiService } from '../hooks/aiService';
 
 export const AISourcing: React.FC = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [progressText, setProgressText] = useState('Initializing scan...');
+  
+  const [extractedInsights, setExtractedInsights] = useState<{
+    skills: Array<{ name: string; level: string }>;
+    summary: string;
+    matchPercentage: number | null;
+  }>({
+    skills: [
+      { name: 'Architecture Design', level: 'Expert' },
+      { name: 'Go / Microservices', level: 'Senior' },
+      { name: 'NoSQL / MongoDB', level: 'Mid-Level' }
+    ],
+    summary: '',
+    matchPercentage: null
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const candidates = [
     {
@@ -33,33 +50,64 @@ export const AISourcing: React.FC = () => {
     { title: 'DevOps Lead', note: 'Undervalued skill set', fit: 91 },
   ];
 
-  const startUploadSimulation = () => {
+  const handleUploadClick = () => {
     if (isUploading) return;
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setIsUploading(true);
     setUploadProgress(0);
-    setProgressText('Reading resume PDF...');
+    setProgressText('Reading resume file...');
 
-    const stages = [
-      { progress: 20, text: 'Parsing metadata...' },
-      { progress: 50, text: 'Extracting skills and history...' },
-      { progress: 80, text: 'Analyzing technical depth...' },
-      { progress: 100, text: 'Running AI matching model...' },
-    ];
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const text = event.target?.result as string;
 
-    let currentStage = 0;
-    const interval = setInterval(() => {
-      if (currentStage >= stages.length) {
-        clearInterval(interval);
+        setProgressText('Parsing metadata...');
+        setUploadProgress(20);
+        await new Promise((r) => setTimeout(r, 600));
+
+        setProgressText('Extracting skills and history...');
+        setUploadProgress(50);
+        await new Promise((r) => setTimeout(r, 600));
+
+        setProgressText('Analyzing technical depth...');
+        setUploadProgress(80);
+        await new Promise((r) => setTimeout(r, 600));
+
+        setProgressText('Running AI matching model...');
+        setUploadProgress(95);
+
+        const parsedResult = await aiService.parseResume(text || file.name);
+        setExtractedInsights({
+          skills: parsedResult.skills,
+          summary: parsedResult.summary,
+          matchPercentage: parsedResult.matchPercentage
+        });
+        setUploadProgress(100);
+        setProgressText('Analysis complete!');
+      } catch (err) {
+        console.error('Resume parse error:', err);
+        setProgressText('Extraction error');
+      } finally {
         setTimeout(() => {
           setIsUploading(false);
           setUploadProgress(0);
         }, 1000);
-      } else {
-        setUploadProgress(stages[currentStage].progress);
-        setProgressText(stages[currentStage].text);
-        currentStage++;
       }
-    }, 800);
+    };
+    reader.onerror = () => {
+      setIsUploading(false);
+      console.error('Failed to read file');
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -195,9 +243,16 @@ export const AISourcing: React.FC = () => {
 
             {/* Drag & Drop Area */}
             <div 
-              onClick={startUploadSimulation}
+              onClick={handleUploadClick}
               className="relative group h-64 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center bg-white/[0.02] hover:bg-primary/[0.03] hover:border-primary transition-all cursor-pointer overflow-hidden"
             >
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                style={{ display: 'none' }} 
+                accept=".txt,.pdf,.doc,.docx,.json,.md"
+              />
               {isUploading && (
                 <div className="scanning-line absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent to-[#b5c4ff] to-transparent"></div>
               )}
@@ -226,31 +281,48 @@ export const AISourcing: React.FC = () => {
 
             {/* Extraction Result Area */}
             <div className="mt-8 space-y-6">
-              <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase">Extracted Insights</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-label-caps font-label-caps text-on-surface-variant uppercase">Extracted Insights</h3>
+                {extractedInsights.matchPercentage !== null && (
+                  <span className="text-xs font-bold text-primary">{extractedInsights.matchPercentage}% Match</span>
+                )}
+              </div>
+              
+              {extractedInsights.summary && (
+                <p className="text-xs text-on-surface-variant leading-relaxed p-3 bg-white/5 border border-white/5 rounded-xl">
+                  {extractedInsights.summary}
+                </p>
+              )}
+
               <div className="space-y-4">
-                <div className="flex items-center justify-between group cursor-pointer py-1">
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-on-surface-variant">account_tree</span>
-                    <span className="text-sm">Architecture Design</span>
-                  </div>
-                  <span className="text-primary text-xs font-bold opacity-60 group-hover:opacity-100 transition-opacity">Expert</span>
-                </div>
-                
-                <div className="flex items-center justify-between group cursor-pointer py-1">
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-on-surface-variant">terminal</span>
-                    <span className="text-sm">Go / Microservices</span>
-                  </div>
-                  <span className="text-primary text-xs font-bold opacity-60 group-hover:opacity-100 transition-opacity">Senior</span>
-                </div>
-                
-                <div className="flex items-center justify-between group cursor-pointer py-1">
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-on-surface-variant">database</span>
-                    <span className="text-sm">NoSQL / MongoDB</span>
-                  </div>
-                  <span className="text-primary text-xs font-bold opacity-60 group-hover:opacity-100 transition-opacity">Mid-Level</span>
-                </div>
+                {extractedInsights.skills.map((skill, sIdx) => {
+                  const iconMap: Record<string, string> = {
+                    'architecture': 'account_tree',
+                    'go': 'terminal',
+                    'nosql': 'database',
+                    'database': 'database',
+                    'design': 'palette',
+                    'react': 'code',
+                    'typescript': 'code',
+                  };
+                  const skillKey = skill.name.toLowerCase();
+                  let icon = 'terminal';
+                  for (const [key, iconVal] of Object.entries(iconMap)) {
+                    if (skillKey.includes(key)) {
+                      icon = iconVal;
+                      break;
+                    }
+                  }
+                  return (
+                    <div key={sIdx} className="flex items-center justify-between group cursor-pointer py-1">
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-on-surface-variant">{icon}</span>
+                        <span className="text-sm">{skill.name}</span>
+                      </div>
+                      <span className="text-primary text-xs font-bold opacity-60 group-hover:opacity-100 transition-opacity">{skill.level}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>

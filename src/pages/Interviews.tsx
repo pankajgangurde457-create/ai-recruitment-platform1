@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { aiService } from '../hooks/aiService';
 
 export const Interviews: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -6,6 +7,38 @@ export const Interviews: React.FC = () => {
   const [interviewer, setInterviewer] = useState('Select Interviewer...');
   const [dateTime, setDateTime] = useState('');
   const [interviewType, setInterviewType] = useState<'remote' | 'in-person'>('remote');
+  const [questions, setQuestions] = useState<string[]>([
+    "How would you integrate our core 'Frictionless' value into the hiring platform's onboarding?",
+    "Describe a time you handled complex data visualizations with high performance requirements."
+  ]);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+
+  const handleGenerateQuestions = async () => {
+    const candName = candidate && candidate !== 'Select Candidate...' ? candidate : 'Sarah Miller';
+    const roleMap: Record<string, string> = {
+      'Sarah Miller': 'Product Designer',
+      'James Wilson': 'Lead Backend Engineer',
+      'Marcus Kael': 'Staff ML Engineer',
+    };
+    const candRole = roleMap[candName] || 'Software Engineer';
+    const interviewerName = interviewer && interviewer !== 'Select Interviewer...' ? interviewer : 'Alex Rivera';
+
+    setIsGeneratingQuestions(true);
+    try {
+      const qs = await aiService.generateInterviewQuestions(candName, candRole, interviewerName);
+      setQuestions(qs);
+    } catch (error) {
+      console.error('Failed to generate interview questions:', error);
+    } finally {
+      setIsGeneratingQuestions(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isModalOpen && candidate !== 'Select Candidate...') {
+      handleGenerateQuestions();
+    }
+  }, [candidate, interviewer, isModalOpen]);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
@@ -291,20 +324,26 @@ export const Interviews: React.FC = () => {
               <div className="ai-glow-border rounded-2xl p-6 bg-surface-container-highest/50">
                 <div className="flex items-center gap-2 mb-4">
                   <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                  <h4 className="font-semibold text-on-surface text-sm">AI Question Preview</h4>
+                  <h4 className="font-semibold text-on-surface text-sm">
+                    {isGeneratingQuestions ? 'AI Generating...' : 'AI Question Preview'}
+                  </h4>
                 </div>
                 <ul className="space-y-3 text-sm">
-                  <li className="flex gap-3 text-on-surface/80">
-                    <span className="text-primary font-bold">01.</span>
-                    "How would you integrate our core 'Frictionless' value into the hiring platform's onboarding?"
-                  </li>
-                  <li className="flex gap-3 text-on-surface/80">
-                    <span className="text-primary font-bold">02.</span>
-                    "Describe a time you handled complex data visualizations with high performance requirements."
-                  </li>
+                  {questions.map((q, idx) => (
+                    <li key={idx} className="flex gap-3 text-on-surface/80">
+                      <span className="text-primary font-bold">{String(idx + 1).padStart(2, '0')}.</span>
+                      "{q}"
+                    </li>
+                  ))}
                 </ul>
-                <button type="button" className="mt-4 text-primary text-[10px] font-bold flex items-center gap-1 hover:underline cursor-pointer tracking-wider">
-                  REGENERATE QUESTIONS <span className="material-symbols-outlined text-sm">refresh</span>
+                <button 
+                  type="button" 
+                  onClick={handleGenerateQuestions}
+                  disabled={isGeneratingQuestions}
+                  className="mt-4 text-primary text-[10px] font-bold flex items-center gap-1 hover:underline cursor-pointer tracking-wider disabled:opacity-50"
+                >
+                  {isGeneratingQuestions ? 'GENERATING...' : 'REGENERATE QUESTIONS'} 
+                  <span className="material-symbols-outlined text-sm">refresh</span>
                 </button>
               </div>
 

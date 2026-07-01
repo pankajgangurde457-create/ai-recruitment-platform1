@@ -1,12 +1,35 @@
 import React, { useState } from 'react';
 import { useCountUp } from '../hooks/useCountUp';
 import { HolographicOrb } from '../components/HolographicOrb';
+import { aiService } from '../hooks/aiService';
 
 export const Dashboard: React.FC = () => {
   const openPositionsCount = useCountUp(12);
   const candidatesCount = useCountUp(482);
   const successRateCount = useCountUp(94);
   const [askAI, setAskAI] = useState('');
+  const [messages, setMessages] = useState<Array<{ sender: 'user' | 'ai'; text: string }>>([]);
+  const [isAIResponding, setIsAIResponding] = useState(false);
+
+  const handleSendAI = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!askAI.trim() || isAIResponding) return;
+
+    const userText = askAI;
+    setAskAI('');
+    
+    setMessages(prev => [...prev, { sender: 'user', text: userText }]);
+    setIsAIResponding(true);
+
+    try {
+      const response = await aiService.chatWithAI(userText);
+      setMessages(prev => [...prev, { sender: 'ai', text: response }]);
+    } catch (error) {
+      setMessages(prev => [...prev, { sender: 'ai', text: 'Error communicating with AI service.' }]);
+    } finally {
+      setIsAIResponding(false);
+    }
+  };
 
   const recentCandidates = [
     {
@@ -243,50 +266,80 @@ export const Dashboard: React.FC = () => {
               <h3 className="font-headline-md text-headline-md">AI Insights</h3>
             </div>
             
-            <div className="space-y-6 flex-1">
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden group">
-                <div className="scan-line absolute inset-x-0 h-1 z-0 pointer-events-none"></div>
-                <div className="flex justify-between items-start relative z-10">
-                  <p className="text-xs font-bold text-primary uppercase tracking-widest">Hiring Alert</p>
-                  <span className="text-[10px] text-on-surface-variant">2m ago</span>
-                </div>
-                <p className="text-sm text-on-surface leading-relaxed relative z-10">
-                  High market demand for <b>Machine Learning Engineers</b>. Recommend adjusting offer ceiling for current candidates.
-                </p>
-              </div>
+            <div className="space-y-6 flex-1 overflow-y-auto max-h-[350px] pr-1 custom-scrollbar">
+              {messages.length === 0 ? (
+                <>
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3 relative overflow-hidden group">
+                    <div className="scan-line absolute inset-x-0 h-1 z-0 pointer-events-none"></div>
+                    <div className="flex justify-between items-start relative z-10">
+                      <p className="text-xs font-bold text-primary uppercase tracking-widest">Hiring Alert</p>
+                      <span className="text-[10px] text-on-surface-variant">2m ago</span>
+                    </div>
+                    <p className="text-sm text-on-surface leading-relaxed relative z-10">
+                      High market demand for <b>Machine Learning Engineers</b>. Recommend adjusting offer ceiling for current candidates.
+                    </p>
+                  </div>
 
-              <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-4">
-                <p className="text-xs font-bold text-tertiary uppercase tracking-widest">Pending Interviews</p>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-sm">schedule</span>
+                  <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-4">
+                    <p className="text-xs font-bold text-tertiary uppercase tracking-widest">Pending Interviews</p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-sm">schedule</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold">14:30 - Jordan S.</p>
+                            <p className="text-[10px] text-on-surface-variant">Technical Round</p>
+                          </div>
+                        </div>
+                        <button className="text-primary material-symbols-outlined cursor-pointer">arrow_forward</button>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold">14:30 - Jordan S.</p>
-                        <p className="text-[10px] text-on-surface-variant">Technical Round</p>
+                      <div className="flex items-center justify-between opacity-60">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-sm">schedule</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold">16:00 - Alex R.</p>
+                            <p className="text-[10px] text-on-surface-variant">Portfolio Review</p>
+                          </div>
+                        </div>
+                        <button className="text-primary material-symbols-outlined cursor-pointer">arrow_forward</button>
                       </div>
                     </div>
-                    <button className="text-primary material-symbols-outlined cursor-pointer">arrow_forward</button>
                   </div>
-                  <div className="flex items-center justify-between opacity-60">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-sm">schedule</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold">16:00 - Alex R.</p>
-                        <p className="text-[10px] text-on-surface-variant">Portfolio Review</p>
-                      </div>
+                </>
+              ) : (
+                messages.map((msg, index) => (
+                  <div 
+                    key={index}
+                    className={`p-4 rounded-2xl border border-white/5 space-y-1 relative overflow-hidden group ${
+                      msg.sender === 'ai' ? 'bg-primary/5 border-primary/20' : 'bg-white/5'
+                    }`}
+                  >
+                    {msg.sender === 'ai' && <div className="scan-line absolute inset-x-0 h-1 z-0 pointer-events-none"></div>}
+                    <div className="flex justify-between items-start relative z-10">
+                      <p className={`text-xs font-bold uppercase tracking-widest ${
+                        msg.sender === 'ai' ? 'text-primary' : 'text-tertiary'
+                      }`}>
+                        {msg.sender === 'ai' ? 'AI Assistant' : 'You'}
+                      </p>
                     </div>
-                    <button className="text-primary material-symbols-outlined cursor-pointer">arrow_forward</button>
+                    <p className="text-sm text-on-surface leading-relaxed relative z-10 whitespace-pre-wrap">{msg.text}</p>
                   </div>
+                ))
+              )}
+
+              {isAIResponding && (
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-2xl space-y-1 animate-pulse">
+                  <p className="text-xs font-bold text-primary uppercase tracking-widest">AI Assistant</p>
+                  <p className="text-sm text-on-surface-variant">Thinking...</p>
                 </div>
-              </div>
+              )}
             </div>
 
-            <div className="mt-8 pt-6 border-t border-white/10">
+            <form onSubmit={handleSendAI} className="mt-8 pt-6 border-t border-white/10">
               <div className="relative">
                 <input 
                   className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 text-on-surface" 
@@ -295,11 +348,11 @@ export const Dashboard: React.FC = () => {
                   value={askAI}
                   onChange={(e) => setAskAI(e.target.value)}
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-primary cursor-pointer">
+                <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-primary cursor-pointer">
                   <span className="material-symbols-outlined">send</span>
                 </button>
               </div>
-            </div>
+            </form>
           </div>
 
           {/* Market Context Card */}

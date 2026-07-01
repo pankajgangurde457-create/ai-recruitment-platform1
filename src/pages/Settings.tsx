@@ -15,6 +15,14 @@ export const Settings: React.FC = () => {
     { name: 'Sarah Miller', email: 'sarah.m@hireflow.ai', role: 'Admin', status: 'ACTIVE', initials: 'SM' },
     { name: 'James Wilson', email: 'j.wilson@hireflow.ai', role: 'Recruiter', status: 'PENDING', initials: 'JW' },
   ]);
+  const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
+  const [isSaved, setIsSaved] = useState(false);
+
+  const saveGeminiKey = () => {
+    localStorage.setItem('gemini_api_key', geminiKey);
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2500);
+  };
 
   const handleRoleChange = (idx: number, newRole: string) => {
     const updated = [...team];
@@ -272,6 +280,28 @@ export const Settings: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <code className="text-mono-technical font-mono text-on-surface-variant text-xs">hf_test_••••••••••••••••89x1</code>
                   <button className="material-symbols-outlined text-sm text-on-surface-variant hover:text-white cursor-pointer">content_copy</button>
+                </div>
+              </div>
+              <div className="p-3 bg-white/5 border border-white/5 rounded-lg space-y-2">
+                <div className="flex justify-between items-center">
+                  <p className="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold">Google Gemini API Key</p>
+                  {isSaved && <span className="text-[10px] text-emerald-400 font-bold">Saved!</span>}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="password"
+                    placeholder="Enter VITE_GEMINI_API_KEY..."
+                    value={geminiKey}
+                    onChange={(e) => setGeminiKey(e.target.value)}
+                    className="flex-1 bg-white/5 border border-white/10 rounded px-2.5 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary"
+                  />
+                  <button 
+                    type="button"
+                    onClick={saveGeminiKey}
+                    className="px-3 py-1.5 bg-primary hover:brightness-110 text-on-primary text-xs font-bold rounded transition-all cursor-pointer"
+                  >
+                    Save
+                  </button>
                 </div>
               </div>
             </div>
