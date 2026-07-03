@@ -1,4 +1,5 @@
 import { supabase } from '../config/supabase';
+import { API_URL } from '../config/api';
 
 const getAuthToken = async (): Promise<string | null> => {
   const { data: { session } } = await supabase.auth.getSession();
@@ -24,7 +25,7 @@ export const aiService = {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch('http://localhost:5000/api/assistant/chat', {
+      const response = await fetch(`${API_URL}/api/assistant/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,7 +45,7 @@ export const aiService = {
       return data.response || 'No response returned from assistant.';
     } catch (err: any) {
       console.error('AI chat assistant failed:', err);
-      return `Failed to fetch response: ${err.message || err}. Please confirm your local backend server is running on port 5000.`;
+      return `Failed to fetch response: ${err.message || err}. Please confirm your backend server is running.`;
     }
   },
 
@@ -57,7 +58,7 @@ export const aiService = {
     const formData = new FormData();
     formData.append('resume', file);
 
-    const response = await fetch('http://localhost:5000/api/candidates/upload', {
+    const response = await fetch(`${API_URL}/api/candidates/upload`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -79,7 +80,7 @@ export const aiService = {
       throw new Error('Not authenticated');
     }
 
-    const response = await fetch(`http://localhost:5000/api/candidates/${candidateId}/apply-and-score`, {
+    const response = await fetch(`${API_URL}/api/candidates/${candidateId}/apply-and-score`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,3 +1,4 @@
+import { API_URL } from '../config/api';
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { aiService } from '../hooks/aiService';
@@ -49,7 +50,7 @@ export const AISourcing: React.FC = () => {
   const loadData = async () => {
     if (!session) return;
     try {
-      const jobsRes = await fetch('http://localhost:5000/api/jobs', {
+      const jobsRes = await fetch(`${API_URL}/api/jobs`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
       const jobsData = await jobsRes.json();
@@ -58,7 +59,7 @@ export const AISourcing: React.FC = () => {
         setSelectedJobId(jobsData[0].id);
       }
 
-      const candRes = await fetch('http://localhost:5000/api/candidates', {
+      const candRes = await fetch(`${API_URL}/api/candidates`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
       const candData = await candRes.json();

@@ -1,3 +1,4 @@
+import { API_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -31,7 +32,7 @@ export const TalentPipeline: React.FC = () => {
   const fetchPipeline = async () => {
     if (!session) return;
     try {
-      const response = await fetch('http://localhost:5000/api/analytics/reports', {
+      const response = await fetch(`${API_URL}/api/analytics/reports`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }

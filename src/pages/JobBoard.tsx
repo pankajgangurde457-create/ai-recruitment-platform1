@@ -1,3 +1,4 @@
+import { API_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -37,7 +38,7 @@ export const JobBoard: React.FC = () => {
   const fetchJobs = async () => {
     if (!session) return;
     try {
-      const response = await fetch('http://localhost:5000/api/jobs', {
+      const response = await fetch(`${API_URL}/api/jobs`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -65,7 +66,7 @@ export const JobBoard: React.FC = () => {
 
     try {
       const parsedSkills = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
-      const response = await fetch('http://localhost:5000/api/jobs', {
+      const response = await fetch(`${API_URL}/api/jobs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

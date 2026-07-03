@@ -1,3 +1,4 @@
+import { API_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,7 +19,7 @@ export const Notifications: React.FC = () => {
   const fetchNotifications = async () => {
     if (!session) return;
     try {
-      const response = await fetch('http://localhost:5000/api/notifications', {
+      const response = await fetch(`${API_URL}/api/notifications`, {
         headers: {
           'Authorization': `Bearer ${session.access_token}`
         }
@@ -42,7 +43,7 @@ export const Notifications: React.FC = () => {
   const handleMarkAllAsRead = async () => {
     if (!session) return;
     try {
-      const response = await fetch('http://localhost:5000/api/notifications/read-all', {
+      const response = await fetch(`${API_URL}/api/notifications/read-all`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${session.access_token}`

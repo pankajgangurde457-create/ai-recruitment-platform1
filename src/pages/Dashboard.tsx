@@ -1,3 +1,4 @@
+import { API_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { aiService } from '../hooks/aiService';
@@ -39,7 +40,7 @@ export const Dashboard: React.FC = () => {
     const fetchDashboardStats = async () => {
       if (!session) return;
       try {
-        const response = await fetch('http://localhost:5000/api/analytics/overview', {
+        const response = await fetch(`${API_URL}/api/analytics/overview`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }

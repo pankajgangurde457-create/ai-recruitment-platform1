@@ -1,3 +1,4 @@
+import { API_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -96,7 +97,7 @@ export const CandidateProfile: React.FC = () => {
 
     setBooking(true);
     try {
-      const response = await fetch('http://localhost:5000/api/interviews', {
+      const response = await fetch(`${API_URL}/api/interviews`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

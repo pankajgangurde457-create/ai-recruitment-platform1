@@ -1,3 +1,4 @@
+import { API_URL } from '../config/api';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -29,7 +30,7 @@ export const AdminPanel: React.FC = () => {
     const fetchAdminData = async () => {
       if (!session) return;
       try {
-        const response = await fetch('http://localhost:5000/api/admin/activities', {
+        const response = await fetch(`${API_URL}/api/admin/activities`, {
           headers: {
             'Authorization': `Bearer ${session.access_token}`
           }
