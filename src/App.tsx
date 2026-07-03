@@ -22,6 +22,7 @@ import { Settings } from './pages/Settings';
 import { CandidateProfile } from './pages/CandidateProfile';
 import { AdminPanel } from './pages/AdminPanel';
 import { NotFound } from './pages/NotFound';
+import { AuthCallback } from './pages/AuthCallback';
 
 export const App: React.FC = () => {
   return (
@@ -36,6 +37,7 @@ export const App: React.FC = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
 
           {/* Dashboard protected routes */}
           <Route element={
