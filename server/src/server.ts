@@ -20,6 +20,44 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// ─── Startup Environment Validation ───────────────────────────────────────────
+const REQUIRED_VARS = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'];
+const OPTIONAL_VARS = ['GEMINI_API_KEY'];
+
+console.log('');
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('  HireFlow Backend — Environment Variable Check   ');
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+let missingRequired = false;
+REQUIRED_VARS.forEach(key => {
+  if (process.env[key]) {
+    console.log(`  ✅  ${key}: configured`);
+  } else {
+    console.error(`  ❌  ${key}: MISSING — server may not function correctly`);
+    missingRequired = true;
+  }
+});
+
+OPTIONAL_VARS.forEach(key => {
+  if (process.env[key]) {
+    console.log(`  ✅  ${key}: configured — AI features enabled`);
+  } else {
+    console.warn(`  ⚠️   ${key}: NOT SET — AI sourcing, scoring, and assistant features will be disabled`);
+  }
+});
+
+console.log(`  ℹ️   NODE_ENV: ${process.env.NODE_ENV || 'development'}`);
+console.log(`  ℹ️   PORT: ${PORT}`);
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('');
+
+if (missingRequired) {
+  console.error('[FATAL] One or more required environment variables are missing. Check Render dashboard → Environment settings.');
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 // Security and compression middleware
 app.use(helmet());
 app.use(compression());

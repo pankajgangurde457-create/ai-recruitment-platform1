@@ -1,6 +1,8 @@
 import { supabase } from '../config/supabaseClient.js';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
+// NOTE: Do NOT cache process.env.GEMINI_API_KEY at module load time.
+// dotenv.config() runs in server.ts AFTER this module is parsed.
+// Always read process.env.GEMINI_API_KEY dynamically at call time.
 
 export interface ParsedResume {
   name: string;
@@ -33,14 +35,15 @@ async function logAiRequest(type: string, prompt: string, response: string) {
   }
 }
 
-// Call Gemini API via fetch
+// Call Gemini API via fetch — reads key dynamically so dotenv vars are always available
 async function callGemini(prompt: string, expectJson = true): Promise<string> {
-  if (!GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY is not configured in the server environment variables.');
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is not configured. Add it to your Render environment variables.');
   }
 
   const model = 'gemini-2.5-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
   const payload: any = {
     contents: [{
