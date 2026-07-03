@@ -1,10 +1,15 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DashboardLayout } from './layouts/DashboardLayout';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Pages
+import { LandingPage } from './pages/LandingPage';
 import { Login } from './pages/Login';
-import { PremiumLogin } from './pages/PremiumLogin';
+import { Signup } from './pages/Signup';
+import { ForgotPassword } from './pages/ForgotPassword';
+import { ResetPassword } from './pages/ResetPassword';
 import { Dashboard } from './pages/Dashboard';
 import { ExecutiveDashboard } from './pages/ExecutiveDashboard';
 import { TalentPipeline } from './pages/TalentPipeline';
@@ -14,33 +19,48 @@ import { JobBoard } from './pages/JobBoard';
 import { Analytics } from './pages/Analytics';
 import { Notifications } from './pages/Notifications';
 import { Settings } from './pages/Settings';
+import { CandidateProfile } from './pages/CandidateProfile';
+import { AdminPanel } from './pages/AdminPanel';
+import { NotFound } from './pages/NotFound';
 
 export const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Auth routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/premium-login" element={<PremiumLogin />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Landing Page */}
+          <Route path="/" element={<LandingPage />} />
 
-        {/* Dashboard layout routes */}
-        <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/executive" element={<ExecutiveDashboard />} />
-          <Route path="/pipeline" element={<TalentPipeline />} />
-          <Route path="/sourcing" element={<AISourcing />} />
-          <Route path="/interviews" element={<Interviews />} />
-          <Route path="/jobs" element={<JobBoard />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
+          {/* Auth routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Catch-all redirects */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Dashboard protected routes */}
+          <Route element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/executive" element={<ExecutiveDashboard />} />
+            <Route path="/pipeline" element={<TalentPipeline />} />
+            <Route path="/candidate/:id" element={<CandidateProfile />} />
+            <Route path="/sourcing" element={<AISourcing />} />
+            <Route path="/interviews" element={<Interviews />} />
+            <Route path="/jobs" element={<JobBoard />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/admin" element={<AdminPanel />} />
+          </Route>
+
+          {/* Catch-all 404 page */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 

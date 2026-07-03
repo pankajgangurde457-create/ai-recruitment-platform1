@@ -1,77 +1,8 @@
-const getGeminiApiKey = (): string | null => {
-  // Check localStorage first for user-configured keys
-  const localKey = localStorage.getItem('gemini_api_key');
-  if (localKey && localKey.trim()) {
-    return localKey.trim();
-  }
-  
-  // Fall back to environment variables
-  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
-  if (envKey && envKey.trim() && envKey !== 'your_gemini_api_key_here') {
-    return envKey.trim();
-  }
-  
-  return null;
-};
+import { supabase } from '../config/supabase';
 
-const cleanJsonString = (text: string): string => {
-  let cleaned = text.trim();
-  if (cleaned.startsWith('```json')) {
-    cleaned = cleaned.slice(7);
-  } else if (cleaned.startsWith('```')) {
-    cleaned = cleaned.slice(3);
-  }
-  if (cleaned.endsWith('```')) {
-    cleaned = cleaned.slice(0, -3);
-  }
-  return cleaned.trim();
-};
-
-export const callGeminiAPI = async (prompt: string): Promise<string> => {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) {
-    throw new Error('API_KEY_MISSING');
-  }
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}));
-      console.error('Gemini API Error:', errData);
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!generatedText) {
-      throw new Error('Invalid response from Gemini API');
-    }
-
-    return generatedText;
-  } catch (error) {
-    console.error('Failed to communicate with Gemini API:', error);
-    throw error;
-  }
+const getAuthToken = async (): Promise<string | null> => {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
 };
 
 export interface ExtractedSkill {
@@ -86,96 +17,83 @@ export interface ParseResult {
 }
 
 export const aiService = {
-  hasKey: (): boolean => {
-    return getGeminiApiKey() !== null;
-  },
-
-  chatWithAI: async (userPrompt: string): Promise<string> => {
-    const systemPrompt = `You are a helpful recruitment AI Assistant embedded in "HireFlow Global AI", a high-end hiring platform. 
-Keep your response concise (under 3-4 sentences/bullet points), premium, and actionable. 
-You can answer general queries or recruitment advice. If asked about candidates, feel free to analyze or summarize candidate profiles.`;
-    
-    const fullPrompt = `${systemPrompt}\n\nUser Question: ${userPrompt}`;
+  chatWithAI: async (userPrompt: string, history: Array<{ role: 'user' | 'model'; parts: { text: string }[] }> = []): Promise<string> => {
     try {
-      return await callGeminiAPI(fullPrompt);
+      const token = await getAuthToken();
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
+
+      const response = await fetch('http://localhost:5000/api/assistant/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          message: userPrompt,
+          history
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch response from AI Assistant');
+      }
+
+      const data = await response.json();
+      return data.response || 'No response returned from assistant.';
     } catch (err: any) {
-      if (err.message === 'API_KEY_MISSING') {
-        return 'Please configure your Google Gemini API Key in the Settings page or the .env file to activate the live AI Assistant.';
-      }
-      return `Failed to fetch response: ${err.message || err}. Please check your API key and connection.`;
+      console.error('AI chat assistant failed:', err);
+      return `Failed to fetch response: ${err.message || err}. Please confirm your local backend server is running on port 5000.`;
     }
   },
 
-  generateInterviewQuestions: async (
-    candidateName: string,
-    role: string,
-    interviewerName: string
-  ): Promise<string[]> => {
-    const prompt = `You are a technical recruitment AI. Generate exactly 2 high-quality, targeted interview questions for a candidate.
-Candidate Name: ${candidateName}
-Target Role: ${role}
-Interviewer Name: ${interviewerName}
-
-Return ONLY a JSON array of strings containing the 2 questions. Do not include markdown labels or explanation, just the raw JSON. Example output:
-["question 1", "question 2"]`;
-
-    try {
-      const rawResponse = await callGeminiAPI(prompt);
-      const jsonStr = cleanJsonString(rawResponse);
-      const parsed = JSON.parse(jsonStr);
-      if (Array.isArray(parsed) && parsed.length >= 2) {
-        return parsed.slice(0, 2);
-      }
-      return [
-        `How would you approach your role as ${role} under the guidance of ${interviewerName}?`,
-        `Describe a key project where you demonstrated technical leadership relevant to ${role}.`
-      ];
-    } catch (err) {
-      console.warn('Fallback to standard questions due to error:', err);
-      return [
-        `How would you integrate our core values into the onboarding of ${role}?`,
-        `Describe a time you handled complex requirements as a ${role} with high performance.`
-      ];
+  parseResume: async (file: File): Promise<{ candidate: any; isNew: boolean }> => {
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error('Not authenticated');
     }
+
+    const formData = new FormData();
+    formData.append('resume', file);
+
+    const response = await fetch('http://localhost:5000/api/candidates/upload', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(err.error || 'Failed to parse resume');
+    }
+
+    return await response.json();
   },
 
-  parseResume: async (resumeText: string): Promise<ParseResult> => {
-    const prompt = `You are an expert ATS (Applicant Tracking System) parser. Analyze the following resume text and extract technical skills and insights in JSON format.
-The JSON must strictly have the following structure:
-{
-  "matchPercentage": number (between 70 and 99),
-  "skills": [
-    { "name": "skill name", "level": "Expert" | "Senior" | "Mid-Level" | "Junior" }
-  ],
-  "summary": "Short 1-2 sentence professional summary"
-}
-
-Ensure the output contains exactly 3 skills in the list for the UI.
-Return ONLY valid JSON. No explanations, no markdown formatting.
-
-Resume Text:
-${resumeText}`;
-
-    try {
-      const rawResponse = await callGeminiAPI(prompt);
-      const jsonStr = cleanJsonString(rawResponse);
-      const parsed = JSON.parse(jsonStr) as ParseResult;
-      
-      if (parsed && typeof parsed.matchPercentage === 'number' && Array.isArray(parsed.skills)) {
-        return parsed;
-      }
-      throw new Error('Invalid parsed structure');
-    } catch (err) {
-      console.warn('Failed to parse resume text with AI, using fallback:', err);
-      return {
-        matchPercentage: Math.floor(Math.random() * (99 - 80 + 1)) + 80,
-        skills: [
-          { name: 'System Design', level: 'Expert' },
-          { name: 'Full-Stack Development', level: 'Senior' },
-          { name: 'Problem Solving', level: 'Mid-Level' }
-        ],
-        summary: 'Extracted candidate with solid technical background in software engineering and cloud infrastructure.'
-      };
+  applyAndScoreCandidate: async (candidateId: string, jobId: string): Promise<any> => {
+    const token = await getAuthToken();
+    if (!token) {
+      throw new Error('Not authenticated');
     }
+
+    const response = await fetch(`http://localhost:5000/api/candidates/${candidateId}/apply-and-score`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ jobId })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ error: 'Evaluation failed' }));
+      throw new Error(err.error || 'Failed to evaluate candidate against job');
+    }
+
+    return await response.json();
   }
 };
+export default aiService;

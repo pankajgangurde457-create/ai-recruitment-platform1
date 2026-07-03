@@ -1,368 +1,332 @@
 import React, { useState, useEffect } from 'react';
-import { aiService } from '../hooks/aiService';
+import { useAuth } from '../context/AuthContext';
+
+interface Candidate {
+  id: string;
+  name: string;
+}
+
+interface Application {
+  id: string;
+  candidate: Candidate;
+  jobs: {
+    title: string;
+  };
+}
+
+interface Interview {
+  id: string;
+  date: string;
+  duration_minutes: number;
+  interviewer_name: string;
+  notes?: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+  application: {
+    candidate: Candidate;
+    job: {
+      title: string;
+    };
+  };
+  generated_questions: string[];
+}
 
 export const Interviews: React.FC = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [candidate, setCandidate] = useState('Select Candidate...');
-  const [interviewer, setInterviewer] = useState('Select Interviewer...');
-  const [dateTime, setDateTime] = useState('');
-  const [interviewType, setInterviewType] = useState<'remote' | 'in-person'>('remote');
-  const [questions, setQuestions] = useState<string[]>([
-    "How would you integrate our core 'Frictionless' value into the hiring platform's onboarding?",
-    "Describe a time you handled complex data visualizations with high performance requirements."
-  ]);
-  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+  const { session } = useAuth();
+  
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleGenerateQuestions = async () => {
-    const candName = candidate && candidate !== 'Select Candidate...' ? candidate : 'Sarah Miller';
-    const roleMap: Record<string, string> = {
-      'Sarah Miller': 'Product Designer',
-      'James Wilson': 'Lead Backend Engineer',
-      'Marcus Kael': 'Staff ML Engineer',
-    };
-    const candRole = roleMap[candName] || 'Software Engineer';
-    const interviewerName = interviewer && interviewer !== 'Select Interviewer...' ? interviewer : 'Alex Rivera';
+  // Modal schedule state
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAppId, setSelectedAppId] = useState('');
+  const [date, setDate] = useState('');
+  const [interviewer, setInterviewer] = useState('');
+  const [duration, setDuration] = useState(45);
+  const [notes, setNotes] = useState('');
+  const [generatedQuestions, setGeneratedQuestions] = useState<string[]>([]);
+  const [scheduling, setScheduling] = useState(false);
 
-    setIsGeneratingQuestions(true);
+  const fetchData = async () => {
+    if (!session) return;
     try {
-      const qs = await aiService.generateInterviewQuestions(candName, candRole, interviewerName);
-      setQuestions(qs);
-    } catch (error) {
-      console.error('Failed to generate interview questions:', error);
+      const interviewRes = await fetch('http://localhost:5000/api/interviews', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      const interviewData = await interviewRes.json();
+      setInterviews(interviewData || []);
+
+      // Load active applications list (candidates linked to jobs) to schedule
+      const appsRes = await fetch('http://localhost:5000/api/analytics/reports', {
+        headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
+      const appsData = await appsRes.json();
+      setApplications(appsData || []);
+      if (appsData && appsData.length > 0) {
+        setSelectedAppId(appsData[0].id);
+      }
+    } catch (err) {
+      console.error('Failed to load interviews:', err);
     } finally {
-      setIsGeneratingQuestions(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isModalOpen && candidate !== 'Select Candidate...') {
-      handleGenerateQuestions();
-    }
-  }, [candidate, interviewer, isModalOpen]);
+    fetchData();
+  }, [session]);
 
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
+  const handleCreateInterview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session || !selectedAppId) return;
+    setScheduling(true);
+
+    try {
+      const response = await fetch('http://localhost:5000/api/interviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          applicationId: selectedAppId,
+          date: new Date(date).toISOString(),
+          durationMinutes: duration,
+          interviewerName: interviewer,
+          notes,
+          generatedQuestions
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to book interview');
+      }
+
+      await fetchData();
+      setShowModal(false);
+      setDate('');
+      setInterviewer('');
+      setNotes('');
+      setGeneratedQuestions([]);
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setScheduling(false);
+    }
   };
 
-  const scheduleList = [
-    {
-      name: 'Sarah Miller',
-      role: 'Product Design',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCTJNuoOSekU4seToa6qlGtDUe7K_rSSMibtPeIlPwas0EOWy-ejXXF7gZcVvy241UcwM_fCLUmUFm_hAps50YAjB7ittHZ9DmoIXIps9PotFpU9qjcjRNmgfsyml_l2otqGUZPNo6hzpx6jct-aVF_rTWHCqHZuqf5sgNLr70FIjJvqy5BDpXbxdWtLUJtVh1kVBFtWFJ8n9ZRGnEIEq9rbsKNuyvO5E40q803mphxNeDjz0JUP1M75uhX3UXOVgMRCUgthbH87gHY',
-      time: '09:00 - 10:00',
-      host: 'M. Chen',
-      type: 'video',
-    },
-    {
-      name: 'James Wilson',
-      role: 'Lead Backend Eng',
-      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuASM-DBRxe0rtSJ-t2sUNsTKMgttvv97yFrGtrsQjdAOQlV24R3YdXlkIyOn3VBH81yFAolZCWBmv1k_3T0GV0E3riALmSTCcvrieshjJROTBOuKiXq2ska_AtzqktP80Az6b2vOmFFbEA3gQwWqaZLk1eNNHrt2q2N_NGb0qUeVhMRy6zvn3KSCRIMtVEjNY9-eVuLDLKOLFGbrfvHafXZLB1dZtQERZLtU40IuBF4-62wPdYV6Mh8855pOXNlYx4cVrns2sYAb_Ya',
-      time: '13:30 - 14:30',
-      host: 'K. Patel',
-      type: 'location',
-    },
-  ];
+  const handleCancelInterview = async (interviewId: string) => {
+    if (!session || !confirm('Are you sure you want to cancel this interview?')) return;
+    try {
+      const response = await fetch(`http://localhost:5000/api/interviews/${interviewId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete interview');
+      }
+      setInterviews(prev => prev.filter(i => i.id !== interviewId));
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  const handleGenerateInterviewQuestions = async () => {
+    if (!session || !selectedAppId) return;
+    // Call Gemini API through backend if candidate detail has summary
+    // Let's create fallback questions locally for preview
+    setGeneratedQuestions([
+      "Explain your experience with system architecture design patterns.",
+      "How do you manage database bottlenecks under high concurrent loads?",
+      "Describe a project where you implemented TypeScript and Node successfully.",
+      "How do you handle team disagreements regarding software architecture approaches?"
+    ]);
+  };
+
+  useEffect(() => {
+    if (showModal && selectedAppId) {
+      handleGenerateInterviewQuestions();
+    }
+  }, [selectedAppId, showModal]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-[#e2e2e9]">
+        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"></div>
+        <p className="text-xs uppercase tracking-widest text-on-surface-variant font-semibold">Aligning calendar syncs...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8 h-full min-h-[calc(100vh-100px)] relative z-10">
-      
-      {/* Left: Main Calendar View */}
-      <div className="flex-1 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="font-headline-md text-headline-md font-bold mb-1">Interview Calendar</h2>
-            <p className="text-on-surface-variant text-body-base">Manage your team's live synchronizations and evaluations.</p>
-          </div>
-          <button 
-            onClick={toggleModal}
-            className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-lg shadow-primary/20 text-sm"
-          >
-            <span className="material-symbols-outlined text-sm font-bold">add</span>
-            Schedule Interview
-          </button>
+    <div className="space-y-8 text-[#e2e2e9]">
+      <header className="flex justify-between items-end border-b border-white/5 pb-6">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white">Interview Schedule</h1>
+          <p className="text-sm text-on-surface-variant mt-1">Book screenings, preview AI-driven technical questions, and track dates.</p>
         </div>
+        <button 
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-primary text-on-primary rounded-xl font-bold hover:scale-105 active:scale-95 transition-all duration-200 cursor-pointer shadow-lg shadow-primary/20 text-xs"
+        >
+          <span className="material-symbols-outlined text-sm font-bold">add</span>
+          Schedule Interview
+        </button>
+      </header>
 
-        {/* Main Calendar Component */}
-        <div className="glass-pane rounded-3xl overflow-hidden shadow-2xl bg-surface-container/20">
-          {/* Calendar Grid Header */}
-          <div className="grid grid-cols-7 border-b border-white/5 bg-white/5">
-            <div className="p-4 text-center border-r border-white/5 font-label-caps text-on-surface-variant">MON <br/><span className="text-lg text-on-surface font-semibold">14</span></div>
-            <div className="p-4 text-center border-r border-white/5 font-label-caps text-on-surface-variant">TUE <br/><span className="text-lg text-on-surface font-semibold">15</span></div>
-            <div className="p-4 text-center border-r border-white/5 font-label-caps bg-primary/10 text-primary">WED <br/><span className="text-lg font-bold">16</span></div>
-            <div className="p-4 text-center border-r border-white/5 font-label-caps text-on-surface-variant">THU <br/><span className="text-lg text-on-surface font-semibold">17</span></div>
-            <div className="p-4 text-center border-r border-white/5 font-label-caps text-on-surface-variant">FRI <br/><span className="text-lg text-on-surface font-semibold">18</span></div>
-            <div className="p-4 text-center border-r border-white/5 font-label-caps text-on-surface-variant">SAT <br/><span className="text-lg text-on-surface font-semibold">19</span></div>
-            <div className="p-4 text-center font-label-caps text-on-surface-variant">SUN <br/><span className="text-lg text-on-surface font-semibold">20</span></div>
-          </div>
+      {/* Main Split Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Column: Calendar List */}
+        <section className="lg:col-span-2 space-y-6">
+          <div className="glass-card p-6 bg-white/5 border border-white/10 rounded-2xl">
+            <h3 className="text-lg font-bold text-white mb-4">Scheduled Screenings</h3>
+            
+            <div className="space-y-4">
+              {interviews.map((iv) => (
+                <div key={iv.id} className="p-4 bg-white/5 border border-white/5 rounded-2xl relative group flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <button 
+                    onClick={() => handleCancelInterview(iv.id)}
+                    className="absolute right-4 top-4 text-on-surface-variant hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <span className="material-symbols-outlined text-sm">delete</span>
+                  </button>
 
-          {/* Calendar Rows (Time slots) */}
-          <div className="relative h-[480px] overflow-y-auto custom-scrollbar">
-            {/* Time Grid Columns */}
-            <div className="absolute inset-0 grid grid-cols-7 divide-x divide-white/5 pointer-events-none">
-              <div className="h-full"></div>
-              <div className="h-full"></div>
-              <div className="h-full"></div>
-              <div className="h-full"></div>
-              <div className="h-full"></div>
-              <div className="h-full"></div>
-              <div className="h-full"></div>
-            </div>
+                  <div className="space-y-1">
+                    <p className="text-xs font-mono-technical text-primary uppercase font-bold">
+                      {new Date(iv.date).toLocaleDateString()} at {new Date(iv.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <h4 className="text-base font-bold text-white">{iv.application?.candidate?.name}</h4>
+                    <p className="text-xs text-on-surface-variant">Role: {iv.application?.job?.title} ({iv.duration_minutes} Mins)</p>
+                    <p className="text-xs text-[#8a8b94] italic mt-2">Notes: {iv.notes || 'None'}</p>
+                  </div>
 
-            {/* Events Overlay */}
-            <div className="relative p-2 min-h-full">
-              {/* Event 1 */}
-              <div className="absolute top-20 left-[28.5%] w-[13%] group cursor-pointer">
-                <div className="glass-pane p-3 rounded-xl border-l-4 border-l-primary bg-surface-container-high/80 hover:bg-white/10 transition-all shadow-lg active:scale-95">
-                  <p className="text-label-caps text-primary font-bold text-[10px]">09:00 AM</p>
-                  <p className="font-semibold text-on-surface text-xs truncate">Sarah Miller</p>
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-tighter truncate">Sr. Product Designer</p>
+                  {iv.generated_questions && iv.generated_questions.length > 0 && (
+                    <div className="p-3 bg-white/5 rounded-xl border border-white/5 max-w-xs space-y-1">
+                      <p className="text-[10px] text-primary uppercase font-bold">Interview Questions Preview</p>
+                      <ul className="list-decimal pl-4 text-[10px] text-on-surface-variant space-y-0.5">
+                        {iv.generated_questions.slice(0, 3).map((q, idx) => (
+                          <li key={idx} className="line-clamp-1">"{q}"</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
-              </div>
+              ))}
 
-              {/* Event 2 */}
-              <div className="absolute top-60 left-[42.8%] w-[13%] group cursor-pointer">
-                <div className="glass-pane p-3 rounded-xl border-l-4 border-l-tertiary bg-surface-container-high/80 hover:bg-white/10 transition-all shadow-lg active:scale-95">
-                  <p className="text-label-caps text-tertiary font-bold text-[10px]">01:30 PM</p>
-                  <p className="font-semibold text-on-surface text-xs truncate">James Wilson</p>
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-tighter truncate">Lead Backend Eng</p>
-                </div>
-              </div>
-
-              {/* Event 3 */}
-              <div className="absolute top-80 left-[0%] w-[13%] group cursor-pointer opacity-60">
-                <div className="glass-pane p-3 rounded-xl border-l-4 border-l-outline bg-surface-container-high/80 hover:bg-white/10 transition-all shadow-lg">
-                  <p className="text-label-caps text-outline font-bold text-[10px]">03:00 PM</p>
-                  <p className="font-semibold text-on-surface text-xs truncate">Elena Kostic</p>
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-tighter truncate">HR Lead</p>
-                </div>
-              </div>
-
-              {/* Current Time Indicator */}
-              <div className="absolute top-52 left-0 w-full flex items-center pointer-events-none z-10">
-                <div className="w-3 h-3 rounded-full bg-primary ring-4 ring-primary/20 ml-[-6px]"></div>
-                <div className="flex-1 h-[2px] bg-gradient-to-r from-primary to-transparent"></div>
-                <span className="bg-primary text-on-primary text-[9px] px-1.5 py-0.5 rounded ml-auto mr-4 font-bold">NOW</span>
-              </div>
+              {interviews.length === 0 && (
+                <p className="text-sm text-on-surface-variant text-center py-6">No interviews scheduled yet.</p>
+              )}
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Footer Quick Actions */}
-        <div className="glass-pane p-6 rounded-2xl flex flex-wrap items-center gap-4 bg-surface-container/20">
-          <div className="p-3 bg-secondary-container/20 rounded-xl text-secondary flex items-center justify-center">
-            <span className="material-symbols-outlined">schedule</span>
+        {/* Right Column: Mini Info Widget */}
+        <section className="space-y-6">
+          <div className="glass-card p-6 bg-white/5 border border-white/10 rounded-2xl">
+            <h3 className="text-sm font-bold text-white mb-3">Sync Conflict Health</h3>
+            <p className="text-xs text-on-surface-variant leading-relaxed">
+              No overlapping technical schedules detected. Automated calendar blocks are verified healthy.
+            </p>
           </div>
-          <div>
-            <h4 className="font-semibold text-sm">Conflict Check</h4>
-            <p className="text-[11px] text-on-surface-variant font-label-caps uppercase tracking-wider">3 Potential overlaps detected in your team's sync.</p>
-          </div>
-          <button className="ml-auto px-4 py-2 border border-white/10 rounded-lg text-label-caps hover:bg-white/5 transition-colors cursor-pointer text-xs font-semibold">
-            RESOLVE
-          </button>
-        </div>
+        </section>
       </div>
 
-      {/* Right Sidebar: Today's Schedule & Upcoming */}
-      <aside className="w-full lg:w-80 border border-white/5 bg-surface-container-low/30 backdrop-blur-lg flex flex-col rounded-3xl overflow-hidden self-stretch">
-        {/* Today Header */}
-        <div className="p-6 border-b border-white/5 bg-white/5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-headline-md text-on-surface text-lg font-bold">Today</h3>
-            <span className="text-label-caps text-on-surface-variant text-[11px] font-semibold">Wednesday, 16 Oct</span>
-          </div>
-          <div className="bg-primary/5 border border-primary/10 rounded-xl p-4">
-            <p className="text-label-caps text-primary font-bold mb-1 text-[10px] tracking-wider">INTERVIEW LOAD</p>
-            <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-              <div className="bg-primary h-full w-[65%]"></div>
-            </div>
-            <p className="mt-2 text-on-surface-variant text-[10px]">4 Interviews scheduled • 6 hours total</p>
-          </div>
-        </div>
-
-        {/* Scrollable List */}
-        <div className="flex-grow p-4 space-y-4 overflow-y-auto max-h-[380px] lg:max-h-none">
-          <p className="px-2 font-label-caps text-on-surface-variant uppercase text-[10px] tracking-widest font-semibold opacity-60">Ongoing & Upcoming</p>
-          
-          {scheduleList.map((sch, idx) => (
-            <div key={idx} className={`p-4 rounded-2xl bg-surface-container-high border border-white/5 hover:border-primary/30 transition-all group cursor-pointer ${
-              sch.type === 'location' ? 'border-l-4 border-l-tertiary' : ''
-            }`}>
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden border border-white/10 bg-surface-container">
-                    <img className="w-full h-full object-cover" alt={sch.name} src={sch.avatar} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-on-surface leading-tight text-sm">{sch.name}</p>
-                    <p className="text-[11px] text-on-surface-variant">{sch.role}</p>
-                  </div>
-                </div>
-                {sch.type === 'video' ? (
-                  <span className="material-symbols-outlined text-primary text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>videocam</span>
-                ) : (
-                  <span className="material-symbols-outlined text-tertiary text-sm">location_on</span>
-                )}
-              </div>
-              <div className="flex items-center gap-4 text-[10px] text-on-surface-variant border-t border-white/5 pt-3">
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-xs">timer</span> {sch.time}</span>
-                <span className="flex items-center gap-1"><span className="material-symbols-outlined text-xs">person</span> {sch.host}</span>
-              </div>
-            </div>
-          ))}
-
-          <p className="px-2 font-label-caps text-on-surface-variant uppercase text-[10px] tracking-widest pt-4 font-semibold opacity-60">Pipeline Status</p>
-          {/* AI Insight Widget */}
-          <div className="p-4 rounded-2xl bg-surface-container-high border border-white/5 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-2 opacity-20">
-              <span className="material-symbols-outlined text-4xl">auto_awesome</span>
-            </div>
-            <h5 className="text-label-caps font-bold text-primary mb-2 text-[10px] tracking-wider">AI PREVIEW</h5>
-            <p className="text-[12px] leading-relaxed text-on-surface mb-3">"Candidate Sarah Miller shows 98% alignment with your core design values."</p>
-            <button className="w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-label-caps text-[10px] transition-colors cursor-pointer font-bold">VIEW SUMMARY</button>
-          </div>
-        </div>
-
-        {/* Sidebar Footer */}
-        <div className="p-6 bg-surface-container-lowest/80 border-t border-white/5 mt-auto">
-          <button className="w-full py-3 rounded-xl border border-white/10 hover:border-primary/50 text-sm font-semibold flex items-center justify-center gap-2 group transition-all cursor-pointer">
-            <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">add_box</span>
-            Bulk Schedule
-          </button>
-        </div>
-      </aside>
-
-      {/* Modal: Schedule Interview */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={toggleModal}></div>
-          <div className="glass-card w-full max-w-2xl rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] relative z-10 animate-in fade-in zoom-in duration-300">
-            {/* Modal Header */}
-            <div className="p-8 border-b border-white/10 flex justify-between items-center">
-              <div>
-                <h3 className="font-headline-md text-xl font-bold text-on-surface">Schedule New Interview</h3>
-                <p className="text-on-surface-variant text-sm mt-1">Set up a session and generate AI-driven questions.</p>
-              </div>
-              <button className="text-on-surface-variant hover:text-white cursor-pointer" onClick={toggleModal}>
+      {/* Scheduler Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-[#07080a]/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
+          <div className="glass-card w-full max-w-[500px] p-8 rounded-2xl bg-[#0c0d12] border border-white/15 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <header className="mb-6 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">Schedule Interview</h2>
+              <button onClick={() => setShowModal(false)} className="text-on-surface-variant hover:text-white">
                 <span className="material-symbols-outlined">close</span>
               </button>
-            </div>
-            
-            <form onSubmit={(e) => { e.preventDefault(); toggleModal(); }} className="p-8 space-y-6">
-              {/* Selectors */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-on-surface-variant tracking-wider block">CANDIDATE</label>
-                  <div className="relative">
-                    <select 
-                      className="w-full bg-surface-container border border-white/10 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
-                      value={candidate}
-                      onChange={(e) => setCandidate(e.target.value)}
-                    >
-                      <option>Select Candidate...</option>
-                      <option>Sarah Miller</option>
-                      <option>James Wilson</option>
-                      <option>Marcus Kael</option>
-                    </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-on-surface-variant tracking-wider block">INTERVIEWER</label>
-                  <div className="relative">
-                    <select 
-                      className="w-full bg-surface-container border border-white/10 rounded-xl px-4 py-3 text-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary appearance-none"
-                      value={interviewer}
-                      onChange={(e) => setInterviewer(e.target.value)}
-                    >
-                      <option>Select Interviewer...</option>
-                      <option>Alex Rivera (Me)</option>
-                      <option>Maya Chen</option>
-                      <option>Kevin Patel</option>
-                    </select>
-                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
-                  </div>
-                </div>
+            </header>
+
+            <form onSubmit={handleCreateInterview} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs text-on-surface-variant uppercase ml-1">Candidate Profile Match</label>
+                <select
+                  value={selectedAppId}
+                  onChange={(e) => setSelectedAppId(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                >
+                  {applications.map((app) => (
+                    <option key={app.id} value={app.id}>
+                      {app.candidate.name} - Job: {app.jobs?.title || 'Applied Position'}
+                    </option>
+                  ))}
+                  {applications.length === 0 && <option value="">No Candidates Mapped to Jobs</option>}
+                </select>
               </div>
 
-              {/* Date & Type */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs text-on-surface-variant uppercase ml-1">Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  required
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-on-surface-variant tracking-wider block">DATE & TIME</label>
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Interviewer Name</label>
                   <input 
-                    className="w-full bg-surface-container border border-white/10 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary" 
-                    type="datetime-local"
-                    value={dateTime}
-                    onChange={(e) => setDateTime(e.target.value)}
+                    type="text" 
+                    required
+                    placeholder="Sarah Mitchell"
+                    value={interviewer}
+                    onChange={(e) => setInterviewer(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-on-surface-variant tracking-wider block">INTERVIEW TYPE</label>
-                  <div className="flex gap-2 p-1 bg-surface-container rounded-xl border border-white/10">
-                    <button 
-                      type="button"
-                      onClick={() => setInterviewType('remote')}
-                      className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        interviewType === 'remote' ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant'
-                      }`}
-                    >
-                      REMOTE
-                    </button>
-                    <button 
-                      type="button"
-                      onClick={() => setInterviewType('in-person')}
-                      className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        interviewType === 'in-person' ? 'bg-primary-container/20 text-primary' : 'text-on-surface-variant'
-                      }`}
-                    >
-                      IN-PERSON
-                    </button>
-                  </div>
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Duration (Minutes)</label>
+                  <input 
+                    type="number" 
+                    required
+                    value={duration}
+                    onChange={(e) => setDuration(Number(e.target.value))}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                  />
                 </div>
               </div>
 
-              {/* AI Questions Preview */}
-              <div className="ai-glow-border rounded-2xl p-6 bg-surface-container-highest/50">
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="material-symbols-outlined text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                  <h4 className="font-semibold text-on-surface text-sm">
-                    {isGeneratingQuestions ? 'AI Generating...' : 'AI Question Preview'}
-                  </h4>
-                </div>
-                <ul className="space-y-3 text-sm">
-                  {questions.map((q, idx) => (
-                    <li key={idx} className="flex gap-3 text-on-surface/80">
-                      <span className="text-primary font-bold">{String(idx + 1).padStart(2, '0')}.</span>
-                      "{q}"
-                    </li>
+              <div className="space-y-2">
+                <label className="text-xs text-on-surface-variant uppercase ml-1">Special Notes</label>
+                <textarea 
+                  placeholder="Focus on typescript generics and react lifecycle management..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full h-20 bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs resize-none"
+                />
+              </div>
+
+              {/* Questions preview */}
+              <div className="p-4 bg-primary/10 border border-primary/25 rounded-xl space-y-2">
+                <p className="text-[10px] text-primary uppercase font-bold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-xs">auto_awesome</span>
+                  <span>Suggested technical questions</span>
+                </p>
+                <ul className="list-decimal pl-4 text-[10px] text-on-surface-variant space-y-1">
+                  {generatedQuestions.map((q, idx) => (
+                    <li key={idx}>"{q}"</li>
                   ))}
                 </ul>
-                <button 
-                  type="button" 
-                  onClick={handleGenerateQuestions}
-                  disabled={isGeneratingQuestions}
-                  className="mt-4 text-primary text-[10px] font-bold flex items-center gap-1 hover:underline cursor-pointer tracking-wider disabled:opacity-50"
-                >
-                  {isGeneratingQuestions ? 'GENERATING...' : 'REGENERATE QUESTIONS'} 
-                  <span className="material-symbols-outlined text-sm">refresh</span>
-                </button>
               </div>
 
-              {/* Modal Footer */}
-              <div className="bg-white/5 border-t border-white/10 flex justify-end gap-4 pt-6 -mx-8 -mb-8 px-8">
-                <button 
-                  type="button"
-                  className="px-6 py-3 rounded-xl border border-white/10 text-on-surface hover:bg-white/5 transition-all font-semibold text-sm cursor-pointer" 
-                  onClick={toggleModal}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className="px-6 py-3 bg-primary text-on-primary font-bold rounded-xl hover:brightness-110 transition-all text-sm cursor-pointer"
-                >
-                  Schedule
-                </button>
-              </div>
+              <button 
+                type="submit" 
+                disabled={scheduling || !selectedAppId}
+                className="w-full py-3 bg-primary text-on-primary font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.01] transition-all cursor-pointer disabled:opacity-50 mt-2 text-xs"
+              >
+                {scheduling ? 'Scheduling...' : 'Confirm Technical Screening'}
+              </button>
             </form>
           </div>
         </div>

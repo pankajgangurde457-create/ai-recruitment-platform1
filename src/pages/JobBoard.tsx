@@ -1,257 +1,358 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+
+interface Job {
+  id: string;
+  title: string;
+  description: string;
+  department: string;
+  location: string;
+  type: 'Full-time' | 'Part-time' | 'Contract' | 'Remote' | 'Internship';
+  experience_level: 'Junior' | 'Mid' | 'Senior' | 'Lead' | 'Executive';
+  skills_required: string[];
+  salary_range?: string;
+  status: 'active' | 'closed' | 'draft';
+  created_at: string;
+}
 
 export const JobBoard: React.FC = () => {
-  const draftJobs = [
-    {
-      id: '#882',
-      title: 'Staff Product Designer',
-      team: 'Growth Team • Series C',
-      applicants: 0,
-      location: 'Remote',
-      icon: 'rocket_launch',
-    },
-    {
-      id: '#901',
-      title: 'Data Engineer',
-      team: 'Analytics Infrastructure',
-      applicants: 0,
-      location: 'London, UK',
-      icon: 'database',
-    },
-  ];
+  const { session } = useAuth();
+  
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [department, setDepartment] = useState('');
+  const [location, setLocation] = useState('');
+  const [type, setType] = useState<Job['type']>('Full-time');
+  const [expLevel, setExpLevel] = useState<Job['experience_level']>('Mid');
+  const [salaryRange, setSalaryRange] = useState('');
+  const [skills, setSkills] = useState('');
+  const [status, setStatus] = useState<Job['status']>('active');
+  const [submitting, setSubmitting] = useState(false);
 
-  const openJobs = [
-    {
-      id: '#870',
-      title: 'Sr. Backend Architect',
-      team: 'FinTech Core • High Frequency',
-      applicants: 42,
-      location: 'San Francisco',
-      logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCzTOlJOU3sleTkLYQsP5oavda4w5OTb8Zp5xGK-tlViV_l0l3k16kGXnTgjs8vigijS0XoLZEiv04tGi0h4meHexzmAGMe8BWmG9X539WnCOQ7dXU0DQWnBY2yggkFdaE6ExUxorarEGbmQTMCdMmX_0PdWpoQ7OuzK7dJhlTwlU1Z2E7D3pXstufNokcZxH7vHbALILkzOXvJ-Cd_whrUqWiCBZAR921ne1ZkdFA3zvwfp_uIIIE7N_ztMYWvtve7uaP57kVcRKgZ',
-      match: '98% AI Match',
-      bars: [true, true, true, false],
-      isActive: true,
-    },
-    {
-      id: '#877',
-      title: 'Machine Learning Lead',
-      team: 'Recommendation Engine',
-      applicants: 18,
-      location: 'Hybrid',
-      logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDl28gUb8r8vlqLlXei6HFTLQrsY1rqGCI-lEgqd1yJk_AApUiiNq9nfz8ky1cpxeopVnJZelQ3C3HjfnKce00ctz1x6F_b76fWW5u2VJ1AhxHbHkILLYUvQOWGN7lwBvg19frET3Nj8xJlXVD2-0Gu7KbcXKx3jiIqhreL-TMkJD0-qpcOUK2zvxT0cb0gi5SZa4-s2OI2nrkw3tt9vL57H20Xxp6xcS0PG-VHSYnhABGjStobAhNdkcIeCgaxpOdI6if73kn26rrl',
-      match: '85% AI Match',
-      bars: [true, true, false, false],
-    },
-  ];
+  const fetchJobs = async () => {
+    if (!session) return;
+    try {
+      const response = await fetch('http://localhost:5000/api/jobs', {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to retrieve jobs');
+      }
+      const data = await response.json();
+      setJobs(data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const inReviewJobs = [
-    {
-      id: '#855',
-      title: 'Head of Sustainability',
-      team: 'Global Ops • ESG Team',
-      applicants: 126,
-      location: 'Berlin, DE',
-      logo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAG4lLuZU67juR1koxmaQ3k86-nt8DsOQxKHXHQVw4nzjx06UCR0af9ZW8Ky9PW5z2i4-mXgXBQSqUFCfULE4XpCSyNc5DlEtNR4XyQBngcbxGELqv7ZGDjK0r6S62EIjkpvca1coaQWIl53Pok9BiJtnXZRryzCZwOjZPZeLpMQ7N5mQU0cEkbnGsNJgxyNBSXpTe-EPXO9lFYJH0nR1PIthpHuREvCct4qO832gaVkpF0nVYkfKsmQ1wSOtrh2f_GvV__9oXeXgCT',
-      initials: ['JD', 'MK', 'AL'],
-    },
-  ];
+  useEffect(() => {
+    fetchJobs();
+  }, [session]);
+
+  const handleCreateJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!session) return;
+    setSubmitting(true);
+
+    try {
+      const parsedSkills = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+      const response = await fetch('http://localhost:5000/api/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          department,
+          location,
+          type,
+          experience_level: expLevel,
+          skills_required: parsedSkills,
+          salary_range: salaryRange,
+          status
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create job');
+      }
+
+      await fetchJobs();
+      setShowModal(false);
+      
+      // Clear fields
+      setTitle('');
+      setDescription('');
+      setDepartment('');
+      setLocation('');
+      setSalaryRange('');
+      setSkills('');
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteJob = async (jobId: string) => {
+    if (!session || !confirm('Are you sure you want to delete this job posting?')) return;
+    try {
+      const response = await fetch(`http://localhost:5000/api/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete job');
+      }
+      setJobs(prev => prev.filter(j => j.id !== jobId));
+    } catch (err: any) {
+      alert(`Error: ${err.message}`);
+    }
+  };
+
+  // Group jobs by lanes
+  const draftJobs = jobs.filter(j => j.status === 'draft');
+  const activeJobs = jobs.filter(j => j.status === 'active');
+  const closedJobs = jobs.filter(j => j.status === 'closed');
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-[#e2e2e9]">
+        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin mb-4"></div>
+        <p className="text-xs uppercase tracking-widest text-on-surface-variant font-semibold">Retrieving Job board pipeline...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-full min-h-[calc(100vh-100px)] overflow-hidden">
-      {/* Header */}
-      <header className="mb-10 flex justify-between items-end">
+    <div className="space-y-8 text-[#e2e2e9]">
+      <header className="flex justify-between items-end border-b border-white/5 pb-6">
         <div>
-          <h2 className="font-headline-md text-headline-md font-bold text-on-surface">Job Pipeline</h2>
-          <p className="text-on-surface-variant mt-1 text-sm">Managing 12 active positions across 4 stages</p>
-        </div>
-        <div className="flex gap-3">
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container-high border border-white/10 text-sm hover:bg-white/10 transition-colors cursor-pointer text-on-surface">
-            <span className="material-symbols-outlined text-sm">filter_list</span>
-            Filter
-          </button>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface-container-high border border-white/10 text-sm hover:bg-white/10 transition-colors cursor-pointer text-on-surface">
-            <span className="material-symbols-outlined text-sm">sort</span>
-            Sort
-          </button>
+          <h1 className="text-3xl font-extrabold text-white">Job Openings</h1>
+          <p className="text-sm text-on-surface-variant mt-1">Manage, add, and archive job requirements mapped to AI ranking pipelines.</p>
         </div>
       </header>
 
-      {/* Kanban Columns */}
-      <section className="flex-grow overflow-x-auto pb-4">
-        <div className="flex gap-6 h-full min-w-max">
-          
-          {/* Column: Draft */}
-          <div className="w-80 flex flex-col gap-4">
-            <div className="flex items-center justify-between px-2 mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-on-surface-variant/30"></div>
-                <span className="font-label-caps text-on-surface-variant text-xs font-semibold">DRAFT</span>
-                <span className="bg-surface-container text-xs px-2 py-0.5 rounded-full text-on-surface-variant/60">3</span>
-              </div>
-              <button className="text-on-surface-variant hover:text-on-surface cursor-pointer">
-                <span className="material-symbols-outlined text-base">more_horiz</span>
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {draftJobs.map((job, idx) => (
-                <div key={idx} className="glass-pane p-5 rounded-xl shadow-lg hover:shadow-primary/5 transition-all duration-500 group cursor-grab active:cursor-grabbing">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-on-surface-variant text-xl">{job.icon}</span>
-                    </div>
-                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-on-surface-variant">ID: {job.id}</span>
-                  </div>
-                  <h3 className="font-bold text-on-surface text-sm mb-1 group-hover:text-primary transition-colors">{job.title}</h3>
-                  <p className="text-xs text-on-surface-variant mb-4">{job.team}</p>
-                  <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-1.5 text-on-surface-variant">
-                      <span className="material-symbols-outlined text-xs">group</span>
-                      <span className="text-xs font-mono-technical">{job.applicants}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-on-surface-variant">
-                      <span className="material-symbols-outlined text-xs">location_on</span>
-                      <span className="text-xs font-mono-technical">{job.location}</span>
-                    </div>
-                  </div>
+      {/* Kanban lanes */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        {/* Lane: Draft */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 mb-2 px-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+            <h3 className="text-xs uppercase font-mono-technical font-bold tracking-widest text-on-surface-variant">Draft ({draftJobs.length})</h3>
+          </div>
+          <div className="space-y-4">
+            {draftJobs.map((job) => (
+              <div key={job.id} className="glass-card p-5 rounded-2xl bg-white/5 border border-white/10 relative group">
+                <button onClick={() => handleDeleteJob(job.id)} className="absolute right-4 top-4 text-on-surface-variant hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                </button>
+                <h4 className="font-bold text-white text-base mb-1">{job.title}</h4>
+                <p className="text-xs text-on-surface-variant">{job.department} • {job.location}</p>
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {job.skills_required.slice(0, 3).map(skill => (
+                    <span key={skill} className="px-2 py-0.5 rounded bg-white/5 text-[9px] text-white">
+                      {skill}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Column: Open */}
-          <div className="w-80 flex flex-col gap-4">
-            <div className="flex items-center justify-between px-2 mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#b5c4ff]"></div>
-                <span className="font-label-caps text-primary text-xs font-semibold">OPEN</span>
-                <span className="bg-primary/10 text-xs px-2 py-0.5 rounded-full text-primary font-bold">4</span>
               </div>
-              <button className="text-on-surface-variant hover:text-on-surface cursor-pointer">
-                <span className="material-symbols-outlined text-base">add_circle</span>
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {openJobs.map((job, idx) => (
-                <div 
-                  key={idx} 
-                  className={`glass-pane p-5 rounded-xl shadow-lg hover:-translate-y-1 transition-all duration-500 group cursor-grab ${
-                    job.isActive ? 'ai-glow-border shadow-2xl bg-surface-container/40' : 'border-white/10'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-primary/20 border border-primary/30 flex items-center justify-center overflow-hidden">
-                      <img className="w-full h-full object-cover" alt={job.title} src={job.logo} />
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] bg-primary/10 px-2 py-1 rounded text-primary font-bold">{job.match}</span>
-                      {job.bars && (
-                        <div className="mt-1 flex gap-0.5">
-                          {job.bars.map((filled, bIdx) => (
-                            <span key={bIdx} className={`w-1 h-3 rounded-full ${filled ? 'bg-primary' : 'bg-white/20'}`}></span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <h3 className="font-bold text-on-surface text-sm mb-1 group-hover:text-primary transition-colors">{job.title}</h3>
-                  <p className="text-xs text-on-surface-variant mb-4">{job.team}</p>
-                  <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-1.5 text-primary">
-                      <span className="material-symbols-outlined text-xs">group</span>
-                      <span className="text-xs font-mono-technical">{job.applicants} Applicants</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-on-surface-variant">
-                      <span className="material-symbols-outlined text-xs">location_on</span>
-                      <span className="text-xs font-mono-technical">{job.location}</span>
-                    </div>
-                  </div>
+            ))}
+            {draftJobs.length === 0 && <p className="text-xs text-on-surface-variant text-center py-4">No drafts.</p>}
+          </div>
+        </section>
+
+        {/* Lane: Active */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 mb-2 px-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(74,222,128,0.5)]"></span>
+            <h3 className="text-xs uppercase font-mono-technical font-bold tracking-widest text-primary">Active Openings ({activeJobs.length})</h3>
+          </div>
+          <div className="space-y-4">
+            {activeJobs.map((job) => (
+              <div key={job.id} className="glass-card p-5 rounded-2xl bg-white/5 border border-primary/20 relative group shadow-lg">
+                <button onClick={() => handleDeleteJob(job.id)} className="absolute right-4 top-4 text-on-surface-variant hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                </button>
+                <h4 className="font-bold text-white text-base mb-1">{job.title}</h4>
+                <p className="text-xs text-on-surface-variant">{job.department} • {job.location}</p>
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {job.skills_required.slice(0, 3).map(skill => (
+                    <span key={skill} className="px-2 py-0.5 rounded bg-primary/10 border border-primary/20 text-[9px] text-primary">
+                      {skill}
+                    </span>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+            {activeJobs.length === 0 && <p className="text-xs text-on-surface-variant text-center py-4">No active openings.</p>}
           </div>
+        </section>
 
-          {/* Column: In Review */}
-          <div className="w-80 flex flex-col gap-4">
-            <div className="flex items-center justify-between px-2 mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-secondary-fixed"></div>
-                <span className="font-label-caps text-on-surface-variant text-xs font-semibold">IN REVIEW</span>
-                <span className="bg-surface-container text-xs px-2 py-0.5 rounded-full text-on-surface-variant/60">5</span>
-              </div>
-              <button className="text-on-surface-variant hover:text-on-surface cursor-pointer">
-                <span className="material-symbols-outlined text-base">more_horiz</span>
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              {inReviewJobs.map((job, idx) => (
-                <div key={idx} className="glass-pane p-5 rounded-xl shadow-lg hover:shadow-primary/5 transition-all duration-500 group cursor-grab">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="w-10 h-10 rounded-lg bg-surface-container-highest border border-white/10 flex items-center justify-center overflow-hidden">
-                      <img className="w-full h-full object-cover" alt={job.title} src={job.logo} />
-                    </div>
-                    <span className="text-[10px] bg-white/5 px-2 py-1 rounded text-on-surface-variant">Top Priority</span>
-                  </div>
-                  <h3 className="font-bold text-on-surface text-sm mb-1 group-hover:text-primary transition-colors">{job.title}</h3>
-                  <p className="text-xs text-on-surface-variant mb-4">{job.team}</p>
-                  <div className="flex items-center gap-4 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-1.5 text-primary">
-                      <span className="material-symbols-outlined text-xs">group</span>
-                      <span className="text-xs font-mono-technical">{job.applicants} Applicants</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-on-surface-variant">
-                      <span className="material-symbols-outlined text-xs">location_on</span>
-                      <span className="text-xs font-mono-technical">{job.location}</span>
-                    </div>
-                  </div>
-                  <div className="mt-4 flex -space-x-2">
-                    {job.initials.map((init, iIdx) => (
-                      <div key={iIdx} className="w-6 h-6 rounded-full border border-surface bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
-                        {init}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+        {/* Lane: Closed */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 mb-2 px-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+            <h3 className="text-xs uppercase font-mono-technical font-bold tracking-widest text-on-surface-variant">Closed / Filled ({closedJobs.length})</h3>
           </div>
+          <div className="space-y-4">
+            {closedJobs.map((job) => (
+              <div key={job.id} className="glass-card p-5 rounded-2xl bg-white/5 border border-white/10 opacity-60 relative group">
+                <button onClick={() => handleDeleteJob(job.id)} className="absolute right-4 top-4 text-on-surface-variant hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                </button>
+                <h4 className="font-bold text-white text-base mb-1 line-through">{job.title}</h4>
+                <p className="text-xs text-on-surface-variant">{job.department} • {job.location}</p>
+              </div>
+            ))}
+            {closedJobs.length === 0 && <p className="text-xs text-on-surface-variant text-center py-4">No closed entries.</p>}
+          </div>
+        </section>
 
-          {/* Column: Closed */}
-          <div className="w-80 flex flex-col gap-4 opacity-60 grayscale-[0.5] hover:grayscale-0 transition-all duration-300">
-            <div className="flex items-center justify-between px-2 mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-error"></div>
-                <span className="font-label-caps text-on-surface-variant text-xs font-semibold">CLOSED</span>
-                <span className="bg-surface-container text-xs px-2 py-0.5 rounded-full text-on-surface-variant/60">24</span>
-              </div>
-              <button className="text-on-surface-variant hover:text-on-surface cursor-pointer">
-                <span className="material-symbols-outlined text-base">history</span>
-              </button>
-            </div>
-            
-            <div className="glass-pane p-5 rounded-xl border-dashed border-white/10 shadow-sm transition-all duration-500 group">
-              <h3 className="font-bold text-on-surface-variant text-sm mb-1 line-through">DevOps Engineer</h3>
-              <p className="text-xs text-on-surface-variant/60 mb-4">Platform Team • Filled</p>
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span className="text-[10px] text-on-surface-variant/60 uppercase font-bold tracking-wider">Hired: Robert Fox</span>
-              </div>
-            </div>
-          </div>
-          
-        </div>
-      </section>
+      </div>
 
       {/* Floating Action Button */}
       <div className="fixed bottom-12 right-12 z-[60]">
-        <button className="flex items-center gap-3 px-8 py-4 bg-primary text-on-primary font-bold rounded-full shadow-[0_15px_40px_rgba(181,196,255,0.4)] hover:shadow-[0_20px_50px_rgba(181,196,255,0.6)] transition-all duration-300 transform active:scale-95 group cursor-pointer relative">
-          <span className="material-symbols-outlined group-hover:rotate-90 transition-transform duration-500">add</span>
-          <span className="font-body-base text-sm font-semibold">Post New Job</span>
-          <div className="absolute inset-0 rounded-full border-2 border-primary/50 animate-ping pointer-events-none opacity-20"></div>
+        <button 
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-3 px-8 py-4 bg-primary text-on-primary font-bold rounded-full shadow-[0_15px_40px_rgba(181,196,255,0.4)] hover:scale-105 transition-all cursor-pointer relative"
+        >
+          <span className="material-symbols-outlined">add</span>
+          <span className="text-sm font-semibold">Post New Job</span>
         </button>
       </div>
+
+      {/* Post Job Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-[#07080a]/80 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+          <div className="glass-card w-full max-w-[520px] p-8 rounded-2xl bg-[#0c0d12] border border-white/15 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <header className="mb-6 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-white">Post New Job opening</h2>
+              <button onClick={() => setShowModal(false)} className="text-on-surface-variant hover:text-white">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </header>
+
+            <form onSubmit={handleCreateJob} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Job Title</label>
+                  <input 
+                    type="text" required placeholder="Sr. Software Architect" value={title} onChange={(e) => setTitle(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Department</label>
+                  <input 
+                    type="text" required placeholder="Engineering" value={department} onChange={(e) => setDepartment(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Location</label>
+                  <input 
+                    type="text" required placeholder="San Francisco, CA" value={location} onChange={(e) => setLocation(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Salary Range</label>
+                  <input 
+                    type="text" placeholder="$150k - $200k" value={salaryRange} onChange={(e) => setSalaryRange(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Employment Type</label>
+                  <select 
+                    value={type} onChange={(e) => setType(e.target.value as any)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none text-xs"
+                  >
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Remote">Remote</option>
+                    <option value="Internship">Internship</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs text-on-surface-variant uppercase ml-1">Experience Level</label>
+                  <select 
+                    value={expLevel} onChange={(e) => setExpLevel(e.target.value as any)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none text-xs"
+                  >
+                    <option value="Junior">Junior</option>
+                    <option value="Mid">Mid</option>
+                    <option value="Senior">Senior</option>
+                    <option value="Lead">Lead</option>
+                    <option value="Executive">Executive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-on-surface-variant uppercase ml-1">Skills Required (Comma separated)</label>
+                <input 
+                  type="text" required placeholder="TypeScript, Go, Kubernetes, AWS" value={skills} onChange={(e) => setSkills(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-on-surface-variant uppercase ml-1">Job Description</label>
+                <textarea 
+                  required placeholder="Enter detailed job requirements..." value={description} onChange={(e) => setDescription(e.target.value)}
+                  className="w-full h-24 bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-primary text-xs resize-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs text-on-surface-variant uppercase ml-1">State status</label>
+                <div className="flex gap-4">
+                  {(['active', 'draft', 'closed'] as const).map((st) => (
+                    <button
+                      key={st} type="button" onClick={() => setStatus(st)}
+                      className={`py-1.5 px-4 text-xs font-semibold rounded-xl border transition-all uppercase ${
+                        status === st ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button 
+                type="submit" disabled={submitting}
+                className="w-full py-3.5 bg-primary text-on-primary font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.01] transition-all cursor-pointer disabled:opacity-50 mt-2 text-xs"
+              >
+                {submitting ? 'Creating Job...' : 'Create Job opening'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
