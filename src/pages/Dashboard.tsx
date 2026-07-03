@@ -35,6 +35,30 @@ export const Dashboard: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'model'; parts: { text: string }[] }>>([]);
   const [isAIResponding, setIsAIResponding] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+
+  const handleSeedData = async () => {
+    if (!session || seeding) return;
+    setSeeding(true);
+    try {
+      const response = await fetch(`${API_URL}/api/analytics/seed`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({ error: 'Seeding failed' }));
+        throw new Error(errData.error || 'Seeding action failed');
+      }
+      alert('Demo recruitment workspace seeded successfully!');
+      window.location.reload();
+    } catch (err: any) {
+      alert(`Error seeding workspace: ${err.message}`);
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -116,6 +140,28 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Empty State Seed Workspace Banner */}
+      {stats.activeJobs === 0 && stats.totalCandidates === 0 && (
+        <div className="glass-card p-8 rounded-3xl border border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2">
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary">cloud_sync</span>
+              Empty Recruiter Workspace
+            </h3>
+            <p className="text-sm text-on-surface-variant max-w-xl">
+              Get started instantly! Seed your workspace with sample jobs, candidates with parsed compatibility reports, and initial interview events.
+            </p>
+          </div>
+          <button
+            onClick={handleSeedData}
+            disabled={seeding}
+            className="bg-primary hover:bg-primary/90 text-on-primary px-6 py-3 rounded-xl font-bold transition-all text-sm cursor-pointer shadow-lg shadow-primary/25 whitespace-nowrap disabled:opacity-50"
+          >
+            {seeding ? 'Seeding Workspace...' : 'Seed Demo Workspace'}
+          </button>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-8">

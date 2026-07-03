@@ -10,7 +10,7 @@ interface Candidate {
 interface Application {
   id: string;
   candidate: Candidate;
-  jobs: {
+  job: {
     title: string;
   };
 }
@@ -256,7 +256,7 @@ export const Interviews: React.FC = () => {
                 >
                   {applications.map((app) => (
                     <option key={app.id} value={app.id}>
-                      {app.candidate.name} - Job: {app.jobs?.title || 'Applied Position'}
+                      {app.candidate.name} - Job: {app.job?.title || 'Applied Position'}
                     </option>
                   ))}
                   {applications.length === 0 && <option value="">No Candidates Mapped to Jobs</option>}
