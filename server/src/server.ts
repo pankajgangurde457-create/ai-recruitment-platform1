@@ -33,18 +33,25 @@ app.use(morgan('dev'));
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
-  'https://ai-recruitment-platform1.vercel.app'
+  'https://ai-recruitment-platform1.vercel.app',
+  'https://ai-recruitment-platform1-qdbr.vercel.app'
 ];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    // Allow requests with no origin (mobile apps, curl, Render health checks)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true); // Allow other origins (or restrict in production)
+      // In production, log but allow (can tighten later)
+      console.warn(`CORS request from unlisted origin: ${origin}`);
+      callback(null, true);
     }
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Rate limiting (100 requests per 15 minutes)
@@ -57,12 +64,23 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint (at both / and /api/health for Render uptime checks)
+app.get('/', (_req, res) => {
+  res.json({ status: 'ok', service: 'HireFlow Backend', timestamp: new Date().toISOString() });
+});
+app.get('/health', (_req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString(), uptime: process.uptime() });
+});
+app.get('/api/health', (_req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    env: {
+      supabaseConfigured: !!process.env.SUPABASE_URL,
+      geminiConfigured: !!process.env.GEMINI_API_KEY,
+      nodeEnv: process.env.NODE_ENV
+    }
   });
 });
 
@@ -85,7 +103,9 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-// Start listening
-app.listen(PORT, () => {
+// Start listening — bind to 0.0.0.0 required for Render
+app.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`[HireFlow Server] running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(`[HireFlow Server] Supabase URL: ${process.env.SUPABASE_URL ? 'configured' : 'MISSING'}`);
+  console.log(`[HireFlow Server] Gemini API: ${process.env.GEMINI_API_KEY ? 'configured' : 'not set'}`);
 });
